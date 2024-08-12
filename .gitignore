@@ -4,3 +4,7 @@
 
 /.vs
 /Run/obj
+/Run/bin
+/Tcp/obj
+/Tcp/bin
+/Common/obj
