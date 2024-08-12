@@ -1,0 +1,173 @@
+﻿using System.Net.Sockets;
+
+namespace Common
+{
+    /// <summary>
+    /// communication parent
+    /// </summary>
+    public abstract class Communicate
+    {
+        private readonly int _timeout;
+        private readonly int _streamEndTimeout;
+        private readonly SemaphoreSlim _slim = new(1, 1);
+
+        private NetworkStream? _stream;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="timeout">communication timeout</param>
+        /// <param name="streamEndTimeout">repeat read timeout, wait read end</param>
+        /// <exception cref="Exception"></exception>
+        public Communicate(int timeout = 1000, int streamEndTimeout = 100)
+        {
+            if (streamEndTimeout >= timeout)
+                throw new Exception();
+
+            _timeout = timeout;
+            _streamEndTimeout = streamEndTimeout;
+        }
+
+        /// <summary>
+        /// release stream
+        /// </summary>
+        /// <exception cref="Exception"></exception>
+        public virtual void Dispose()
+        {
+            if (_stream is null)
+                throw new Exception();
+
+            _stream.Close();
+        }
+
+        /// <summary>
+        /// initialize stream
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task InitAsync()
+        {
+            _stream = await initAsync();
+
+            if (_stream is null)
+                throw new Exception();
+        }
+
+        /// <summary>
+        /// read stream
+        /// </summary>
+        /// <returns></returns>
+        public async Task<byte[]> ReadAsync()
+        {
+            _slim.Wait();
+            var receive = await readAsync().Timeout(_timeout);
+            _slim.Release();
+
+            return receive;
+        }
+
+        /// <summary>
+        /// write data
+        /// </summary>
+        /// <param name="data"></param>
+        /// <exception cref="Exception"></exception>
+        public async void WriteAsync(byte[] data)
+        {
+            if (_stream is null)
+                throw new Exception();
+
+            _slim.Wait();
+            await writeAsync(data).Timeout(_timeout);
+            _slim.Release();
+        }
+
+        /// <summary>
+        /// write and read
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public async Task<byte[]> QueryAsync(byte[] data)
+        {
+            if (_stream is null)
+                throw new Exception();
+
+            _slim.Wait();
+            await writeAsync(data).Timeout(_timeout);
+            var receive = await readAsync().Timeout(_timeout);
+            _slim.Release();
+
+            return receive;
+        }
+
+        /// <summary>
+        /// module init and set stream
+        /// </summary>
+        /// <returns></returns>
+        protected abstract Task<NetworkStream> initAsync();
+
+        /// <summary>
+        /// read
+        /// </summary>
+        /// <returns>receive data</returns>
+        /// <exception cref="Exception"></exception>
+        private async Task<byte[]> readAsync()
+        {
+            if (_stream is null)
+                throw new Exception();
+
+            IEnumerable<byte> receiveList = []; //return data
+
+            bool isLoop = false; //check buffer size < read data length
+
+            while (true)
+            {
+                const int BUFFER_SIZE = 1024;
+                int len;
+
+                var buffer = new byte[BUFFER_SIZE];
+
+                if (isLoop)
+                {
+                    try
+                    {
+                        len = await _stream.ReadAsync(buffer).Timeout(_streamEndTimeout); //read repeat, wait short time
+                    }
+                    catch //if stream read length == BUFFER_SIZE, no timeout is wait forever
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    len = await _stream.ReadAsync(buffer);
+                }
+
+                var receive = new byte[len];
+                Array.Copy(buffer, receive, len); //receive data length is receive length
+                receiveList = receiveList.Concat(receive);
+
+                if (len < BUFFER_SIZE) //data end
+                    break;
+
+                isLoop = true;
+            }
+
+            return [.. receiveList];
+        }
+
+        /// <summary>
+        /// write
+        /// </summary>
+        /// <param name="data">send data</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        private async Task writeAsync(byte[] data)
+        {
+            if (_stream is null)
+                throw new Exception();
+
+            await _stream.WriteAsync(data);
+        }
+    }
+}
