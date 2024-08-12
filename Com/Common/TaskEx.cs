@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common
+namespace Com.Common
 {
     /// <summary>
     /// make timeout task
     /// </summary>
-    public static class TaskEx
+    internal static class TaskEx
     {
         /// <summary>
         /// Task set timeout

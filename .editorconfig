@@ -1,4 +1,7 @@
 ﻿[*.cs]
 
-# IDE1006: 명명 스타일
+# 소문자 시작 함수
 dotnet_diagnostic.IDE1006.severity = silent
+
+# 기본 생성자
+dotnet_diagnostic.IDE0290.severity = silent

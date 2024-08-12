@@ -1,7 +1,7 @@
-﻿using Common;
+﻿using Com.Common;
 using System.Net.Sockets;
 
-namespace Tcp
+namespace Com.Tcp
 {
     /// <summary>
     /// tcp client
