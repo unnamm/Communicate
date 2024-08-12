@@ -1,5 +1,4 @@
-﻿using System.Net.Sockets;
-
+﻿
 namespace Common
 {
     /// <summary>
@@ -7,11 +6,12 @@ namespace Common
     /// </summary>
     public abstract class Communicate
     {
-        private readonly int _timeout;
+        protected readonly int _timeout;
+
         private readonly int _streamEndTimeout;
         private readonly SemaphoreSlim _slim = new(1, 1);
 
-        private NetworkStream? _stream;
+        private Stream? _stream;
 
         /// <summary>
         /// 
@@ -45,9 +45,9 @@ namespace Common
         /// </summary>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task InitAsync()
+        public async Task ConnectAsync()
         {
-            _stream = await initAsync();
+            _stream = await connectAsync().Timeout(_timeout);
 
             if (_stream is null)
                 throw new Exception();
@@ -104,7 +104,7 @@ namespace Common
         /// module init and set stream
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<NetworkStream> initAsync();
+        protected abstract Task<Stream> connectAsync();
 
         /// <summary>
         /// read
@@ -133,7 +133,7 @@ namespace Common
                     {
                         len = await _stream.ReadAsync(buffer).Timeout(_streamEndTimeout); //read repeat, wait short time
                     }
-                    catch //if stream read length == BUFFER_SIZE, no timeout is wait forever
+                    catch //if stream read length == BUFFER_SIZE
                     {
                         break;
                     }

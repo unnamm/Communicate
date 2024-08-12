@@ -78,14 +78,5 @@ namespace Common
 
             return task.Result;
         }
-
-        public static async void Example()
-        {
-            Task t = Task.Delay(100); //this task 100 milli
-            await t.Timeout(1000); //end after 100 milli
-
-            t = Task.Delay(5000); //this task 5000 milli
-            await t.Timeout(1000); //TimeoutException after 1000 milli
-        }
     }
 }

@@ -14,6 +14,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modbus", "Modbus\Modbus.csproj", "{99FED7FF-9706-4E4E-B106-D17CAC255D98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serial", "Serial\Serial.csproj", "{41913333-879D-41BD-9223-9DFE7BEEDA9B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,6 +36,14 @@ Global
 		{18BF6C9C-BAF5-4E7C-9197-4D3D0B6439C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18BF6C9C-BAF5-4E7C-9197-4D3D0B6439C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18BF6C9C-BAF5-4E7C-9197-4D3D0B6439C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99FED7FF-9706-4E4E-B106-D17CAC255D98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99FED7FF-9706-4E4E-B106-D17CAC255D98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99FED7FF-9706-4E4E-B106-D17CAC255D98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99FED7FF-9706-4E4E-B106-D17CAC255D98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41913333-879D-41BD-9223-9DFE7BEEDA9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41913333-879D-41BD-9223-9DFE7BEEDA9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41913333-879D-41BD-9223-9DFE7BEEDA9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41913333-879D-41BD-9223-9DFE7BEEDA9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
