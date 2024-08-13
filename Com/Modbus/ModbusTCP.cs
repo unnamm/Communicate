@@ -12,7 +12,6 @@ namespace Com.Modbus
     {
         public ModbusTCP(string ip, int port, int timeout = 1000) : base(ip, port, timeout)
         {
-
         }
 
         public async Task<ushort[]> ReadInputRegisters(ushort startingAddress, ushort readNum)
@@ -36,7 +35,7 @@ namespace Com.Modbus
             return receiveDatas;
         }
 
-        public async void WriteSingleRegister(ushort startingAddress, ushort value)
+        public async Task WriteSingleRegister(ushort startingAddress, ushort value)
         {
             var sendBuff = makeSendData(FunctionCode.ReadInputRegisters, startingAddress, value);
 
