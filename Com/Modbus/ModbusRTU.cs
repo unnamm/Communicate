@@ -59,7 +59,7 @@ namespace Com.Modbus
 
             for (int i = 0; i < receiveData.Length; i++)
             {
-                receiveData[0] = BitConverter.ToUInt16([receive[3 + i * 2], receive[4 + i * 2]]);
+                receiveData[0] = BitConverter.ToUInt16([receive[4 + i * 2], receive[3 + i * 2]]);
             }
 
             return receiveData;
@@ -74,8 +74,8 @@ namespace Com.Modbus
             [
                 slaveAddress, //slave address
                 (byte)code, //function code
-                addresses[0], addresses[1], //start address
-                numbers[0], numbers[1], //read number
+                addresses[1], addresses[0], //start address
+                numbers[1], numbers[0], //read number
             ];
 
             return setDataCRC(sendData);
@@ -85,7 +85,7 @@ namespace Com.Modbus
         {
             if (_isUseCrc)
             {
-                var crcs = BitConverter.GetBytes(getCRC(sendData));
+                var crcs = BitConverter.GetBytes(getCRC(sendData)).Reverse();
                 return [.. sendData, .. crcs];
             }
             return sendData;

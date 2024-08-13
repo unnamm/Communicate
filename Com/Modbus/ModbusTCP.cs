@@ -10,26 +10,14 @@ namespace Com.Modbus
 {
     public class ModbusTCP : TcpCommunicate
     {
-        public ModbusTCP(string ip, int port) : base(ip, port)
+        public ModbusTCP(string ip, int port, int timeout = 1000) : base(ip, port, timeout)
         {
 
         }
 
-        public async Task<ushort[]> ReadInputRegisters(ushort startingAddress, int readNum)
+        public async Task<ushort[]> ReadInputRegisters(ushort startingAddress, ushort readNum)
         {
-            var add = BitConverter.GetBytes(startingAddress);
-            var num = BitConverter.GetBytes(readNum);
-
-            byte[] sendBuff =
-            [
-                0x00, 0x01, // Transaction Identifier
-                0x00, 0x00, // Protocol Identifier
-                0x00, 0x06, // Length
-                0x01,       // Unit Identifier
-                (byte)FunctionCode.ReadInputRegisters, // Function Code (Read Input Registers)
-                add[0], add[1], // Starting Address
-                num[0], num[1] // read num
-            ];
+            var sendBuff = makeSendData(FunctionCode.ReadInputRegisters, startingAddress, readNum);
 
             var receive = await QueryAsync(sendBuff);
 
@@ -39,13 +27,38 @@ namespace Com.Modbus
             //var unitId = receive[6];
             //var functionCode = (FunctionCode)receive[7];
             var byteCount = receive[8];
-            var receiveData = new ushort[byteCount / 2];
+            var receiveDatas = new ushort[byteCount / 2];
 
-            for (int i = 0; i < receiveData.Length; i++)
+            for (int i = 0; i < receiveDatas.Length; i++)
             {
-                receiveData[i] = BitConverter.ToUInt16([receive[8 + i * 2], receive[9 + i * 2]]);
+                receiveDatas[i] = BitConverter.ToUInt16([receive[9 + i * 2], receive[8 + i * 2]]);
             }
-            return receiveData;
+            return receiveDatas;
+        }
+
+        public async void WriteSingleRegister(ushort startingAddress, ushort value)
+        {
+            var sendBuff = makeSendData(FunctionCode.ReadInputRegisters, startingAddress, value);
+
+            _ = await QueryAsync(sendBuff);
+        }
+
+        private byte[] makeSendData(FunctionCode code, ushort startAddress, ushort value)
+        {
+            var addresses = BitConverter.GetBytes(startAddress);
+            var values = BitConverter.GetBytes(value);
+
+            byte[] sendBuff =
+            [
+                0x00, 0x01, // Transaction Identifier
+                0x00, 0x00, // Protocol Identifier
+                0x00, 0x06, // Length
+                0x01,       // Unit Identifier
+                (byte)code, // Function Code
+                addresses[1], addresses[0], // Starting Address
+                values[1], values[0] // read num
+            ];
+            return sendBuff;
         }
     }
 }

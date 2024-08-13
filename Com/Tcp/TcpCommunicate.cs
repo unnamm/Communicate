@@ -12,7 +12,8 @@ namespace Com.Tcp
         private readonly int _port;
         private readonly TcpClient _client = new();
 
-        public TcpCommunicate(string ip, int port)
+        public TcpCommunicate(string ip, int port, int timeout = 1000, int streamEndTimeout = 100) :
+            base(timeout, streamEndTimeout)
         {
             _ip = ip;
             _port = port;
