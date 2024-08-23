@@ -97,9 +97,20 @@ namespace Com.Common
             if (_stream is null)
                 throw new Exception();
 
+            byte[] receive;
             _slim.Wait();
-            await writeAsync(data).Timeout(_timeout);
-            var receive = await readAsync().Timeout(_timeout);
+
+            try
+            {
+                await writeAsync(data).Timeout(_timeout);
+                receive = await readAsync().Timeout(_timeout);
+            }
+            catch (Exception ex)
+            {
+                _slim.Release();
+                throw new Exception(ex.Message);
+            }
+
             _slim.Release();
 
             return receive;
