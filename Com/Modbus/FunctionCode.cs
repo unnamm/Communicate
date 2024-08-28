@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Com.Modbus
 {
-    internal enum FunctionCode
+    public enum FunctionCode
     {
         None,
-        ReadCoils = 0x01,
+        ReadCoil = 0x01,
         ReadDiscreteInputs = 0x02,
         ReadHolingRegisters = 0x03,
         ReadInputRegisters = 0x04,

@@ -1,31 +1,59 @@
-﻿using System;
+﻿using Com.Common;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Com.Modbus
 {
     /// <summary>
     /// modbus function
     /// </summary>
-    public class Modbus
+    public abstract class Modbus
     {
-        public static BitArray GetBitArray(ushort value)
+        readonly protected Communicate _communicate;
+
+        protected ushort _transactionId = 0;
+
+        public Modbus(Communicate c)
         {
-            var byteArray = BitConverter.GetBytes(value).Reverse().ToArray();
-            var bitArray = new BitArray(byteArray);
-            return bitArray;
+            if (c.IsConnectStream() == false)
+                throw new Exception("communicate disconnected");
+
+            _communicate = c;
         }
+
+        /// <summary>
+        /// query and check transactionId
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        protected async Task<byte[]> query(byte[] data)
+        {
+            var read = await _communicate.QueryAsync(data);
+
+            var transaction = BitConverter.ToUInt16([read[1], read[0]]);
+
+            if (_transactionId != transaction)
+            {
+                throw new Exception("pair error");
+            }
+
+            _transactionId = _transactionId == ushort.MaxValue ? (ushort)0 : (ushort)(_transactionId + 1);
+
+            return read;
+        }
+
+        public static BitArray GetBitArray(ushort value) =>
+            new(BitConverter.GetBytes(value).ToArray());
 
         public static ushort Getushort(BitArray bitArray)
         {
+            if (bitArray.Count != sizeof(ushort) * 8)
+            {
+                throw new Exception("bit array size error");
+            }
             byte[] bytes = new byte[2];
             bitArray.CopyTo(bytes, 0);
-            bytes = bytes.Reverse().ToArray();
-            return BitConverter.ToUInt16(bytes);
+            return BitConverter.ToUInt16(bytes.ToArray());
         }
     }
 }

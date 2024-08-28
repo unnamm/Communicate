@@ -33,6 +33,13 @@ namespace Com.Common
             _streamEndTimeout = streamEndTimeout;
         }
 
+        public bool IsConnectStream()
+        {
+            if (_stream == null)
+                return false;
+            return _stream.CanRead;
+        }
+
         /// <summary>
         /// release stream
         /// </summary>

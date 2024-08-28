@@ -20,7 +20,7 @@ namespace Com.Modbus
                 throw new Exception("large read number");
             }
 
-            var sendData = makeSendData(slaveAddress, FunctionCode.ReadCoils, startingAddress, quantityOfCoils);
+            var sendData = makeSendData(slaveAddress, FunctionCode.ReadCoil, startingAddress, quantityOfCoils);
 
             var receive = await QueryAsync(sendData);
 
