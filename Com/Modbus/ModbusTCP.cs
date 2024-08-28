@@ -127,32 +127,32 @@ namespace Com.Modbus
         /// <param name="startAddress"></param>
         /// <param name="values"></param>
         /// <returns></returns>
-        private byte[] makeSendData(FunctionCode code, ushort startAddress, bool[] values)
-        {
-            var transaction = BitConverter.GetBytes(_transactionId);
-            var addresses = BitConverter.GetBytes(startAddress);
+        //private byte[] makeSendData(FunctionCode code, ushort startAddress, bool[] values)
+        //{
+        //    var transaction = BitConverter.GetBytes(_transactionId);
+        //    var addresses = BitConverter.GetBytes(startAddress);
 
-            var bits = new BitArray(values); //bool[] -> bit array
-            var bytes = new byte[bits.Length / 8]; //8bit == 1byte
-            bits.CopyTo(bytes, 0);
+        //    var bits = new BitArray(values); //bool[] -> bit array
+        //    var bytes = new byte[bits.Length / 8]; //8bit == 1byte
+        //    bits.CopyTo(bytes, 0);
 
-            var lengths = BitConverter.GetBytes((ushort)(7 + bytes.Length));
-            var dataLengths = BitConverter.GetBytes((ushort)bits.Length); //bit count
+        //    var lengths = BitConverter.GetBytes((ushort)(7 + bytes.Length));
+        //    var dataLengths = BitConverter.GetBytes((ushort)bits.Length); //bit count
 
-            byte[] sendBuff =
-            [
-                transaction[1], transaction[0], //Transaction Identifier, read write pair
-                0x00, 0x00, //Protocol Identifier, 0000 fix
-                lengths[1], lengths[0], //Length
-                0x01,       //Unit Identifier, slave
-                (byte)code, //Function Code
-                addresses[1], addresses[0], //Starting Address
-                dataLengths[1], dataLengths[0], //length
-                (byte)bytes.Length, //byte count
-            ];
-            sendBuff = [.. sendBuff, .. bytes];
+        //    byte[] sendBuff =
+        //    [
+        //        transaction[1], transaction[0], //Transaction Identifier, read write pair
+        //        0x00, 0x00, //Protocol Identifier, 0000 fix
+        //        lengths[1], lengths[0], //Length
+        //        0x01,       //Unit Identifier, slave
+        //        (byte)code, //Function Code
+        //        addresses[1], addresses[0], //Starting Address
+        //        dataLengths[1], dataLengths[0], //length
+        //        (byte)bytes.Length, //byte count
+        //    ];
+        //    sendBuff = [.. sendBuff, .. bytes];
 
-            return sendBuff;
-        }
+        //    return sendBuff;
+        //}
     }
 }
