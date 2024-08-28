@@ -1,11 +1,11 @@
-﻿using Com.Common;
+﻿using Com.Tcp;
 using System.Collections;
 
 namespace Com.Modbus
 {
     public class ModbusTCP : Modbus
     {
-        public ModbusTCP(Communicate c) : base(c)
+        public ModbusTCP(TcpCommunicate c) : base(c)
         {
         }
 
@@ -45,12 +45,12 @@ namespace Com.Modbus
             return getUshorts(read);
         }
 
-        public async Task WriteSingleCoil(ushort address, bool value)
-        {
-            var send = makeSendData6(FunctionCode.WriteSingleCoil, address, value ? (ushort)0xFF00 : (ushort)0x0000);
+        //public async Task WriteSingleCoil(ushort address, bool value)
+        //{
+        //    var send = makeSendData6(FunctionCode.WriteSingleCoil, address, value ? (ushort)0xFF00 : (ushort)0x0000);
 
-            await query(send);
-        }
+        //    await query(send);
+        //}
 
         public async Task WriteSingleRegister(ushort address, ushort value)
         {
@@ -58,13 +58,6 @@ namespace Com.Modbus
 
             await query(send);
         }
-
-        //public async void WriteMultipleCoils(ushort address, bool[] values) //need to sure that values only works on multiple 8
-        //{
-        //    var send = makeSendData(FunctionCode.WriteMultipleCoils, address, values);
-
-        //    await query(send);
-        //}
 
         /// <summary>
         /// get bit array from receive data
