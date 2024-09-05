@@ -1,59 +1,22 @@
-﻿using System.Collections;
-using System.IO.Ports;
-using Com.Serial;
+﻿using Com.Serial;
 
 namespace Com.Modbus
 {
-    public class ModbusRTU : SerialCommunicate
+    public class ModbusRTU : Modbus
     {
-        private readonly bool _isUseCrc;
+        private readonly bool _isUseCRC;
 
-        public ModbusRTU(string portName, int baudRate, int dataBits, Parity parity, bool isUseCrc) : base(portName, baudRate, dataBits, parity)
+        public ModbusRTU(SerialCommunicate c, bool isUseCRC) : base(c)
         {
-            _isUseCrc = isUseCrc;
-        }
-
-        public async Task<BitArray> ReadCoils(byte slaveAddress, ushort startingAddress, ushort quantityOfCoils)
-        {
-            if (quantityOfCoils > ushort.MaxValue)
-            {
-                throw new Exception("large read number");
-            }
-
-            var sendData = makeSendData(slaveAddress, FunctionCode.ReadCoil, startingAddress, quantityOfCoils);
-
-            var receive = await QueryAsync(sendData);
-
-            //slaveAddress = receive[0]; //slave address
-            //var functionCode = (FunctionCode)receive[1]; //function code
-            var byteCount = receive[2]; //data byte number
-            var receiveData = new byte[byteCount]; //byte array data
-
-            for (int i = 0; i < receiveData.Length; i++)
-            {
-                receiveData[i] = receive[3 + i]; //coil state
-            }
-
-            var bitArray = new BitArray(receiveData); //byte array => bit array
-            var receiveCoils = new BitArray(quantityOfCoils); //return array
-            for (int i = 0; i < quantityOfCoils; i++)
-            {
-                receiveCoils[i] = bitArray[i];
-            }
-
-            return receiveCoils;
+            _isUseCRC = isUseCRC;
         }
 
         public async Task<ushort[]> ReadInputRegisters(byte slaveAddress, ushort startingAddress, ushort quantityOfRegisters)
         {
-            if (quantityOfRegisters > byte.MaxValue * 0.5)
-            {
-                throw new Exception("large read number");
-            }
-
             var sendData = makeSendData(slaveAddress, FunctionCode.ReadInputRegisters, startingAddress, quantityOfRegisters);
 
-            var receive = await QueryAsync(sendData);
+            var receive = await query(sendData);
+
             var byteCount = receive[2]; //data byte number
             var receiveData = new ushort[byteCount / 2]; //byte array data
 
@@ -65,25 +28,23 @@ namespace Com.Modbus
             return receiveData;
         }
 
-        private byte[] makeSendData(byte slaveAddress, FunctionCode code, ushort startAddress, ushort number)
+        public Task WriteSingleRegister(byte slaveAddress, ushort startingAddress, ushort data) =>
+            query(makeSendData(slaveAddress, FunctionCode.WriteSingleRegister, startingAddress, data));
+
+        private byte[] makeSendData(byte slaveAddress, FunctionCode code, ushort startAddress, ushort value)
         {
             var addresses = BitConverter.GetBytes(startAddress);
-            var numbers = BitConverter.GetBytes(number);
+            var values = BitConverter.GetBytes(value);
 
             byte[] sendData =
             [
                 slaveAddress, //slave address
                 (byte)code, //function code
                 addresses[1], addresses[0], //start address
-                numbers[1], numbers[0], //read number
+                values[1], values[0], //read number
             ];
 
-            return setDataCRC(sendData);
-        }
-
-        private byte[] setDataCRC(byte[] sendData)
-        {
-            if (_isUseCrc)
+            if (_isUseCRC)
             {
                 var crcs = BitConverter.GetBytes(getCRC(sendData)).Reverse();
                 return [.. sendData, .. crcs];
@@ -136,5 +97,37 @@ namespace Com.Modbus
 
             return crc;
         }
+
+        //public async Task<BitArray> ReadCoils(byte slaveAddress, ushort startingAddress, ushort quantityOfCoils)
+        //{
+        //    if (quantityOfCoils > ushort.MaxValue)
+        //    {
+        //        throw new Exception("large read number");
+        //    }
+
+        //    var sendData = makeSendData(slaveAddress, FunctionCode.ReadCoil, startingAddress, quantityOfCoils);
+
+        //    var receive = await query(sendData);
+
+        //    //slaveAddress = receive[0]; //slave address
+        //    //var functionCode = (FunctionCode)receive[1]; //function code
+        //    var byteCount = receive[2]; //data byte number
+        //    var receiveData = new byte[byteCount]; //byte array data
+
+        //    for (int i = 0; i < receiveData.Length; i++)
+        //    {
+        //        receiveData[i] = receive[3 + i]; //coil state
+        //    }
+
+        //    var bitArray = new BitArray(receiveData); //byte array => bit array
+        //    var receiveCoils = new BitArray(quantityOfCoils); //return array
+        //    for (int i = 0; i < quantityOfCoils; i++)
+        //    {
+        //        receiveCoils[i] = bitArray[i];
+        //    }
+
+        //    return receiveCoils;
+        //}
+
     }
 }

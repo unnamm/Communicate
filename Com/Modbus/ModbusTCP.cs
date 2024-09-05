@@ -1,5 +1,4 @@
 ﻿using Com.Tcp;
-using System.Collections;
 
 namespace Com.Modbus
 {
@@ -7,20 +6,6 @@ namespace Com.Modbus
     {
         public ModbusTCP(TcpCommunicate c) : base(c)
         {
-        }
-
-        public async Task<BitArray> ReadBits(FunctionCode code, ushort address, ushort readNum)
-        {
-            if (code != FunctionCode.ReadCoil && code != FunctionCode.ReadDiscreteInputs)
-            {
-                throw new Exception("incorrect code");
-            }
-
-            var send = makeSendData6(code, address, readNum);
-
-            var read = await query(send);
-
-            return getBits(read);
         }
 
         /// <summary>
@@ -38,44 +23,15 @@ namespace Com.Modbus
                 throw new Exception("incorrect code");
             }
 
-            var send = makeSendData6(code, address, readNum);
+            var send = makeSendData(code, address, readNum);
 
             var read = await query(send);
 
             return getUshorts(read);
         }
 
-        //public async Task WriteSingleCoil(ushort address, bool value)
-        //{
-        //    var send = makeSendData6(FunctionCode.WriteSingleCoil, address, value ? (ushort)0xFF00 : (ushort)0x0000);
-
-        //    await query(send);
-        //}
-
-        public async Task WriteSingleRegister(ushort address, ushort value)
-        {
-            var send = makeSendData6(FunctionCode.WriteSingleRegister, address, value);
-
-            await query(send);
-        }
-
-        /// <summary>
-        /// get bit array from receive data
-        /// </summary>
-        /// <param name="read">receive data</param>
-        /// <returns></returns>
-        private static BitArray getBits(byte[] read)
-        {
-            var byteCount = read[8];
-
-            List<byte> list = [];
-
-            for (int i = 0; i < byteCount; i++)
-            {
-                list.Add(read[9 + i]);
-            }
-            return new BitArray(list.ToArray());
-        }
+        public Task WriteSingleRegister(ushort address, ushort value) =>
+            query(makeSendData(FunctionCode.WriteSingleRegister, address, value));
 
         /// <summary>
         /// get data array from receive data
@@ -98,27 +54,65 @@ namespace Com.Modbus
         /// </summary>
         /// <param name="code"></param>
         /// <param name="startAddress"></param>
-        /// <param name="value"></param>
+        /// <param name="readNum"></param>
         /// <returns></returns>
-        private byte[] makeSendData6(FunctionCode code, ushort startAddress, ushort value)
+        private static byte[] makeSendData(FunctionCode code, ushort startAddress, ushort readNum)
         {
-            var transaction = BitConverter.GetBytes(_transactionId);
             var addresses = BitConverter.GetBytes(startAddress);
-            var values = BitConverter.GetBytes(value);
+            var readNums = BitConverter.GetBytes(readNum);
 
             byte[] sendBuff =
             [
-                transaction[1], transaction[0], //Transaction Identifier, read write pair
+                0x00, 0x01, //Transaction Identifier, read write pair
                 0x00, 0x00, //Protocol Identifier, 0000 fix
                 0x00, 0x06, //Length
                 0x01,       //Unit Identifier, slave
                 (byte)code, //Function Code
                 addresses[1], addresses[0], //Starting Address
-                values[1], values[0] //read num, value
+                readNums[1], readNums[0] //read num, value
             ];
 
             return sendBuff;
         }
+
+        //public async Task WriteSingleCoil(ushort address, bool value)
+        //{
+        //    var send = makeSendData6(FunctionCode.WriteSingleCoil, address, value ? (ushort)0xFF00 : (ushort)0x0000);
+
+        //    await query(send);
+        //}
+
+        /// <summary>
+        /// get bit array from receive data
+        /// </summary>
+        /// <param name="read">receive data</param>
+        /// <returns></returns>
+        //private static BitArray getBits(byte[] read)
+        //{
+        //    var byteCount = read[8];
+
+        //    List<byte> list = [];
+
+        //    for (int i = 0; i < byteCount; i++)
+        //    {
+        //        list.Add(read[9 + i]);
+        //    }
+        //    return new BitArray(list.ToArray());
+        //}
+
+        //public async Task<BitArray> ReadBits(FunctionCode code, ushort address, ushort readNum)
+        //{
+        //    if (code != FunctionCode.ReadCoil && code != FunctionCode.ReadDiscreteInputs)
+        //    {
+        //        throw new Exception("incorrect code");
+        //    }
+
+        //    var send = makeSendData6(code, address, readNum);
+
+        //    var read = await query(send);
+
+        //    return getBits(read);
+        //}
 
         /// <summary>
         /// make request multiple data

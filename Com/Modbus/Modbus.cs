@@ -8,9 +8,7 @@ namespace Com.Modbus
     /// </summary>
     public abstract class Modbus
     {
-        readonly protected Communicate _communicate;
-
-        protected ushort _transactionId = 0;
+        readonly private Communicate _communicate;
 
         public Modbus(Communicate c)
         {
@@ -20,30 +18,12 @@ namespace Com.Modbus
             _communicate = c;
         }
 
-        /// <summary>
-        /// query and check transactionId
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        protected async Task<byte[]> query(byte[] data)
+        protected Task<byte[]> query(byte[] data)
         {
-            var read = await _communicate.QueryAsync(data);
-
-            var transaction = BitConverter.ToUInt16([read[1], read[0]]);
-
-            if (_transactionId != transaction)
-            {
-                throw new Exception("pair error");
-            }
-
-            _transactionId = _transactionId == ushort.MaxValue ? (ushort)0 : (ushort)(_transactionId + 1);
-
-            return read;
+            return _communicate.QueryAsync(data);
         }
 
-        public static BitArray GetBitArray(ushort value) =>
-            new(BitConverter.GetBytes(value).ToArray());
+        public static BitArray GetBitArray(ushort value) => new(BitConverter.GetBytes(value).ToArray());
 
         public static ushort Getushort(BitArray bitArray)
         {
