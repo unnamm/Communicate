@@ -11,27 +11,24 @@ namespace Com.Modbus
             _isUseCRC = isUseCRC;
         }
 
-        public async Task<ushort[]> ReadInputRegisters(byte slaveAddress, ushort startingAddress, ushort quantityOfRegisters)
+        public override async Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 0x01)
         {
-            var sendData = makeSendData(slaveAddress, FunctionCode.ReadInputRegisters, startingAddress, quantityOfRegisters);
+            if (code != FunctionCode.ReadHolingRegisters && code != FunctionCode.ReadInputRegisters)
+            {
+                throw new Exception("incorrect code");
+            }
+
+            var sendData = makeSendData(FunctionCode.ReadInputRegisters, address, readNum, slave);
 
             var receive = await query(sendData);
 
-            var byteCount = receive[2]; //data byte number
-            var receiveData = new ushort[byteCount / 2]; //byte array data
-
-            for (int i = 0; i < receiveData.Length; i++)
-            {
-                receiveData[0] = BitConverter.ToUInt16([receive[4 + i * 2], receive[3 + i * 2]]);
-            }
-
-            return receiveData;
+            return getUshorts(receive);
         }
 
-        public Task WriteSingleRegister(byte slaveAddress, ushort startingAddress, ushort data) =>
-            query(makeSendData(slaveAddress, FunctionCode.WriteSingleRegister, startingAddress, data));
+        public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>
+            query(makeSendData(FunctionCode.WriteSingleRegister, address, value, slave));
 
-        private byte[] makeSendData(byte slaveAddress, FunctionCode code, ushort startAddress, ushort value)
+        private byte[] makeSendData(FunctionCode code, ushort startAddress, ushort value, byte slaveAddress)
         {
             var addresses = BitConverter.GetBytes(startAddress);
             var values = BitConverter.GetBytes(value);
@@ -50,6 +47,22 @@ namespace Com.Modbus
                 return [.. sendData, .. crcs];
             }
             return sendData;
+        }
+
+        /// <summary>
+        /// get data array from receive data
+        /// </summary>
+        /// <param name="read">receive data</param>
+        /// <returns></returns>
+        private static ushort[] getUshorts(byte[] read)
+        {
+            var receiveDatas = new ushort[read[2] / 2];
+
+            for (int i = 0; i < receiveDatas.Length; i++)
+            {
+                receiveDatas[i] = BitConverter.ToUInt16([read[4 + i * 2], read[3 + i * 2]]);
+            }
+            return receiveDatas;
         }
 
         private static ushort getCRC(byte[] data)

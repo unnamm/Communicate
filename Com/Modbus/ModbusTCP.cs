@@ -8,30 +8,48 @@ namespace Com.Modbus
         {
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="code">ReadHolingRegisters, ReadInputRegisters</param>
-        /// <param name="address"></param>
-        /// <param name="readNum"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public async Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum)
+        public override async Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 0x01)
         {
             if (code != FunctionCode.ReadHolingRegisters && code != FunctionCode.ReadInputRegisters)
             {
                 throw new Exception("incorrect code");
             }
 
-            var send = makeSendData(code, address, readNum);
+            var send = makeSendData(code, address, readNum, slave);
 
             var read = await query(send);
 
             return getUshorts(read);
         }
 
-        public Task WriteSingleRegister(ushort address, ushort value) =>
-            query(makeSendData(FunctionCode.WriteSingleRegister, address, value));
+        public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>
+            query(makeSendData(FunctionCode.WriteSingleRegister, address, value, slave));
+
+        /// <summary>
+        /// make request one data
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="startAddress"></param>
+        /// <param name="readNum"></param>
+        /// <returns></returns>
+        private static byte[] makeSendData(FunctionCode code, ushort startAddress, ushort readNum, byte slave)
+        {
+            var addresses = BitConverter.GetBytes(startAddress);
+            var readNums = BitConverter.GetBytes(readNum);
+
+            byte[] sendBuff =
+            [
+                0x00, 0x01, //Transaction Identifier, read write pair
+                0x00, 0x00, //Protocol Identifier, 0000 fix
+                0x00, 0x06, //Length
+                slave,       //Unit Identifier, slave
+                (byte)code, //Function Code
+                addresses[1], addresses[0], //Starting Address
+                readNums[1], readNums[0] //read num, value
+            ];
+
+            return sendBuff;
+        }
 
         /// <summary>
         /// get data array from receive data
@@ -47,32 +65,6 @@ namespace Com.Modbus
                 receiveDatas[i] = BitConverter.ToUInt16([read[10 + i * 2], read[9 + i * 2]]);
             }
             return receiveDatas;
-        }
-
-        /// <summary>
-        /// make request one data
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="startAddress"></param>
-        /// <param name="readNum"></param>
-        /// <returns></returns>
-        private static byte[] makeSendData(FunctionCode code, ushort startAddress, ushort readNum)
-        {
-            var addresses = BitConverter.GetBytes(startAddress);
-            var readNums = BitConverter.GetBytes(readNum);
-
-            byte[] sendBuff =
-            [
-                0x00, 0x01, //Transaction Identifier, read write pair
-                0x00, 0x00, //Protocol Identifier, 0000 fix
-                0x00, 0x06, //Length
-                0x01,       //Unit Identifier, slave
-                (byte)code, //Function Code
-                addresses[1], addresses[0], //Starting Address
-                readNums[1], readNums[0] //read num, value
-            ];
-
-            return sendBuff;
         }
 
         //public async Task WriteSingleCoil(ushort address, bool value)
