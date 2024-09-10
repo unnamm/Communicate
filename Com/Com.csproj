@@ -11,4 +11,10 @@
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="ActUtlTypeLib">
+      <HintPath>..\..\KERI_B2B_NEW\Dll\ActUtlTypeLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
