@@ -3,9 +3,6 @@ using System.Collections;
 
 namespace Com.Modbus
 {
-    /// <summary>
-    /// modbus function
-    /// </summary>
     public abstract class Modbus
     {
         readonly private Communicate _communicate;

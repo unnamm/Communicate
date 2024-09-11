@@ -8,12 +8,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <COMReference Include="XGCommLib">
+      <VersionMinor>0</VersionMinor>
+      <VersionMajor>1</VersionMajor>
+      <Guid>2cff650c-6df0-48ae-9b06-c8dd467e0cd3</Guid>
+      <Lcid>0</Lcid>
+      <WrapperTool>tlbimp</WrapperTool>
+      <Isolated>false</Isolated>
+      <EmbedInteropTypes>true</EmbedInteropTypes>
+    </COMReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.IO.Ports" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="ActUtlTypeLib">
-      <HintPath>..\..\KERI_B2B_NEW\Dll\ActUtlTypeLib.dll</HintPath>
+      <HintPath>..\Dll\ActUtlTypeLib.dll</HintPath>
     </Reference>
   </ItemGroup>
 

@@ -1,12 +1,21 @@
-﻿using Com.Serial;
-using System.IO.Ports;
+﻿using Com.Common;
 
 namespace Com.Modbus
 {
-    public class ModbusASCII : SerialCommunicate
+    public class ModbusASCII : Modbus
     {
-        public ModbusASCII(string portName, int baudRate, int dataBits, Parity parity) : base(portName, baudRate, dataBits, parity)
+        public ModbusASCII(Communicate c) : base(c)
         {
+        }
+
+        public override Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 1)
+        {
+            throw new NotImplementedException();
         }
     }
 }

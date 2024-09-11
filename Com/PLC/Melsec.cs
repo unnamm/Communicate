@@ -2,6 +2,9 @@
 
 namespace Com.PLC
 {
+    /// <summary>
+    /// need ActUtlTypeLib.dll
+    /// </summary>
     public class Melsec
     {
         private readonly ActUtlTypeLib.ActUtlType _plc = new();
