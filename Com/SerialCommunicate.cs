@@ -1,7 +1,7 @@
 ﻿using Com.Common;
 using System.IO.Ports;
 
-namespace Com.Serial
+namespace Com
 {
     /// <summary>
     /// connect serial port

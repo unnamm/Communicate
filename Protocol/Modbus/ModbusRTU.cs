@@ -1,4 +1,4 @@
-﻿using Com.Serial;
+﻿using Com;
 
 namespace Protocol.Modbus
 {
