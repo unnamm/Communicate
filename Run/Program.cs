@@ -9,6 +9,19 @@ internal class Program
     {
         Console.Write("Hello");
 
+        var t = new Test();
+        var t2 = new Test<int>();
     }
+
+    class Test
+    {
+        public void F() { }
+    }
+
+    class Test<T>
+    {
+
+    }
+
 
 }
