@@ -13,14 +13,6 @@
 **    - XG5000을 설치하지 않고 사용시 제공받은 XGCommLib.dll 파일을 반드시 "C:\XG5000" 폴더를 생성한 후 복사하여 
 **      위에 설명한 방법과 동일하게 윈도우 명령 실행창에 "regsvr32 C:\XG5000\XGCommLib.dll"을 입력 후 엔터키를 
 **      입력하여 XGCommLib.dll을 등록한 후 사용
-*********************************************************************************************************************
-*********************************************************************************************************************
-**
-** Source Change Indices
-** ---------------------
-** 1) 2021-07-01 : Wrapper Module 최초 작성
-** 2) 2022-01-19 : Connect 함수 수정(IP변경 또는 연결끊김 후 재 연결 잘 되도록 변경)  
-** 3) 2022-01-20 : Timeout 설정 함수 추가 
 **
 *********************************************************************************************************************
 ********************************************************************************************************************/
@@ -33,7 +25,7 @@ using System.Text;
 using System.Threading.Tasks;
 using XGCommLib;
 
-namespace Com.PLC
+namespace PLC
 {
     public enum XGCOMM_PRE_DEFINES : uint
     {
@@ -206,7 +198,7 @@ namespace Com.PLC
         //  > lOffsetBit      : 읽을 Bit의 offset을 지정함, Ex) MX1000 이면 1000
         //  > lSizeBit        : 한번에 읽을 Bit 개수를 지정함, 최대 32개, Ex) %MX100, %MX101일 읽으려면, lOffsetBit에 100을 지정하고 lSizeBit는 2를 지정
         //  < *pbyRead        : Bit 배열 포인트를 지정, 반드시 배열의 갯수는 lSizeBit 보다 같거나 커야됨 
-        public uint ReadDataBit(char szDeviceType, long lOffsetBit, long lSizeBit, byte[] pbyRead)
+        public uint ReadDataBit(char szDeviceType, long lOffsetBit, long lSizeBit, byte[]? pbyRead)
         {
             if (this.m_CommDriver == null)
             {
@@ -683,14 +675,13 @@ namespace Com.PLC
 
         // -> TCP통신 접속 대기 시간 반환함
         //  - *pdwTimeout     : 설정된 접속 대기 시간을 반환 
-        public uint GetCommTimeout(ref uint pdwTimeout)
+        public uint GetCommTimeout(ref uint? pdwTimeout)
         {
-            string strValue;
-            RegistryKey rkey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\XGLibConfig");
+            var rkey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\XGLibConfig");
 
             if (rkey != null)
             {
-                strValue = rkey.GetValue("Timeout").ToString();
+                var strValue = rkey.GetValue("Timeout")!.ToString();
 
                 if (pdwTimeout != null)
                     pdwTimeout = Convert.ToUInt16(strValue);
@@ -705,7 +696,7 @@ namespace Com.PLC
         //  - dwTimeout       : 설정할 접속 대기 시간을 지정
         public uint SetCommTimeout(uint dwTimeout)
         {
-            RegistryKey rkey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\XGLibConfig", true);
+            var rkey = Registry.CurrentUser.OpenSubKey("SOFTWARE\\XGLibConfig", true);
 
             if (rkey != null)
             {

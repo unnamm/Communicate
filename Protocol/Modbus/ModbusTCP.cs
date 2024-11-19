@@ -1,6 +1,6 @@
 ﻿using Com.Tcp;
 
-namespace Com.Modbus
+namespace Protocol.Modbus
 {
     public class ModbusTCP : Modbus
     {
@@ -19,7 +19,7 @@ namespace Com.Modbus
 
             var read = await query(send);
 
-            return getUshorts(read);
+            return getUshorts(read.ToArray());
         }
 
         public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>

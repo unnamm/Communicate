@@ -1,10 +1,14 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using System;
+using System.Diagnostics;
+using System.Net.Sockets;
+using System.Text;
 
-using Com.Modbus;
-using System.Collections;
+internal class Program
+{
+    private static void Main(string[] args)
+    {
+        Console.Write("Hello");
 
-Console.WriteLine("Hello, World!");
+    }
 
-ModbusTCP tcp = new ModbusTCP("1", 1, 1000);
-
-Console.ReadLine();
+}

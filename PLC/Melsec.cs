@@ -1,6 +1,5 @@
-﻿using Com.Common;
-
-namespace Com.PLC
+﻿
+namespace PLC
 {
     /// <summary>
     /// need ActUtlTypeLib.dll

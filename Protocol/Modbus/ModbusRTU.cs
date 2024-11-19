@@ -1,6 +1,6 @@
 ﻿using Com.Serial;
 
-namespace Com.Modbus
+namespace Protocol.Modbus
 {
     public class ModbusRTU : Modbus
     {
@@ -22,7 +22,7 @@ namespace Com.Modbus
 
             var receive = await query(sendData);
 
-            return getUshorts(receive);
+            return getUshorts(receive.ToArray());
         }
 
         public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>

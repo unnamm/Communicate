@@ -1,6 +1,6 @@
 ﻿using Com.Common;
 
-namespace Com.Modbus
+namespace Protocol.Modbus
 {
     public class ModbusASCII : Modbus
     {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,85 +12,52 @@ namespace Com.Common
     /// </summary>
     public abstract class Communicate
     {
+        private readonly SemaphoreSlim _slim = new(1);
         protected readonly int _timeout;
 
-        private readonly int _streamEndTimeout;
-        private readonly SemaphoreSlim _slim = new(1, 1);
+        private Stream _stream;
 
-        private Stream? _stream;
+        public Communicate(int timeout = 1000) => _timeout = timeout;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="timeout">communication timeout</param>
-        /// <param name="streamEndTimeout">repeat read timeout, wait read end</param>
-        /// <exception cref="Exception"></exception>
-        public Communicate(int timeout = 1000, int streamEndTimeout = 100)
-        {
-            if (streamEndTimeout >= timeout)
-                throw new Exception();
-
-            _timeout = timeout;
-            _streamEndTimeout = streamEndTimeout;
-        }
-
-        public bool IsConnectStream()
-        {
-            if (_stream == null)
-                return false;
-            return _stream.CanRead;
-        }
-
-        /// <summary>
-        /// release stream
-        /// </summary>
-        /// <exception cref="Exception"></exception>
-        public virtual void Dispose()
-        {
-            if (_stream is null)
-                throw new Exception();
-
-            _stream.Close();
-        }
-
-        /// <summary>
-        /// initialize stream
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
         public async Task ConnectAsync()
         {
-            _stream = await connectAsync().Timeout(_timeout);
+            _stream = await Connect().Timeout(_timeout);
 
             if (_stream is null)
                 throw new Exception();
         }
 
-        /// <summary>
-        /// read stream
-        /// </summary>
-        /// <returns></returns>
-        public async Task<byte[]> ReadAsync()
+        public async Task<IEnumerable<byte>> ReadAsync()
         {
+            IEnumerable<byte> receive;
+
             _slim.Wait();
-            var receive = await readAsync().Timeout(_timeout);
+            try
+            {
+                receive = await Read();
+            }
+            catch (Exception ex)
+            {
+                _slim.Release();
+                throw new Exception(string.Empty, ex);
+            }
             _slim.Release();
 
             return receive;
         }
 
-        /// <summary>
-        /// write data
-        /// </summary>
-        /// <param name="data"></param>
-        /// <exception cref="Exception"></exception>
-        public async void WriteAsync(byte[] data)
+        public async Task WriteAsync(IEnumerable<byte> data)
         {
-            if (_stream is null)
-                throw new Exception();
-
             _slim.Wait();
-            await writeAsync(data).Timeout(_timeout);
+            try
+            {
+                await _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
+            }
+            catch (Exception ex)
+            {
+                _slim.Release();
+                throw new Exception(string.Empty, ex);
+            }
             _slim.Release();
         }
 
@@ -97,44 +65,36 @@ namespace Com.Common
         /// write and read
         /// </summary>
         /// <param name="data"></param>
+        /// <param name="readDelay">write and delay and read</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<byte[]> QueryAsync(byte[] data)
+        public async Task<IEnumerable<byte>> QueryAsync(IEnumerable<byte> data, int readDelay = 0)
         {
-            if (_stream is null)
-                throw new Exception();
+            IEnumerable<byte> receive;
 
-            byte[] receive;
             _slim.Wait();
-
             try
             {
-                await writeAsync(data).Timeout(_timeout);
-                receive = await readAsync().Timeout(_timeout);
+                await _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
+                await Task.Delay(readDelay);
+                receive = await Read();
             }
             catch (Exception ex)
             {
                 _slim.Release();
-                throw new Exception(ex.Message);
+                throw new Exception(string.Empty, ex);
             }
-
             _slim.Release();
 
             return receive;
         }
 
         /// <summary>
-        /// module init and set stream
+        /// can bigdata read
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<Stream> connectAsync();
-
-        /// <summary>
-        /// read
-        /// </summary>
-        /// <returns>receive data</returns>
         /// <exception cref="Exception"></exception>
-        private async Task<byte[]> readAsync()
+        private async Task<IEnumerable<byte>> Read()
         {
             if (_stream is null)
                 throw new Exception();
@@ -142,6 +102,8 @@ namespace Com.Common
             IEnumerable<byte> receiveList = []; //return data
 
             bool isLoop = false; //check buffer size < read data length
+
+            const int REPEAT_TIMEOUT = 100;
 
             while (true)
             {
@@ -152,18 +114,18 @@ namespace Com.Common
 
                 if (isLoop)
                 {
-                    try
+                    try //repeat read
                     {
-                        len = await _stream.ReadAsync(buffer).Timeout(_streamEndTimeout); //read repeat, wait short time
+                        len = await _stream.ReadAsync(buffer).Timeout(REPEAT_TIMEOUT); //read repeat, wait short time
                     }
-                    catch //if stream read length == BUFFER_SIZE
+                    catch //if len == BUFFER_SIZE, repeat data zero
                     {
                         break;
                     }
                 }
-                else
+                else //first read
                 {
-                    len = await _stream.ReadAsync(buffer);
+                    len = await _stream.ReadAsync(buffer).Timeout(_timeout);
                 }
 
                 var receive = new byte[len];
@@ -176,21 +138,16 @@ namespace Com.Common
                 isLoop = true;
             }
 
-            return [.. receiveList];
+            return receiveList;
         }
 
         /// <summary>
-        /// write
+        /// module init and set stream
         /// </summary>
-        /// <param name="data">send data</param>
         /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        private async Task writeAsync(byte[] data)
-        {
-            if (_stream is null)
-                throw new Exception();
+        protected abstract Task<Stream> Connect();
 
-            await _stream.WriteAsync(data);
-        }
+        public virtual void Dispose() => _stream.Dispose();
+
     }
 }

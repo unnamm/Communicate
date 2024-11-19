@@ -1,7 +1,7 @@
 ﻿using Com.Common;
 using System.Collections;
 
-namespace Com.Modbus
+namespace Protocol.Modbus
 {
     public abstract class Modbus
     {
@@ -9,9 +9,6 @@ namespace Com.Modbus
 
         public Modbus(Communicate c)
         {
-            if (c.IsConnectStream() == false)
-                throw new Exception("communicate disconnected");
-
             _communicate = c;
         }
 
@@ -20,7 +17,7 @@ namespace Com.Modbus
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        protected Task<byte[]> query(byte[] data) => _communicate.QueryAsync(data);
+        protected Task<IEnumerable<byte>> query(byte[] data) => _communicate.QueryAsync(data);
 
         /// <summary>
         /// ushort -> bool[16]
