@@ -3,9 +3,6 @@ using System.IO.Ports;
 
 namespace Com
 {
-    /// <summary>
-    /// connect serial port
-    /// </summary>
     public class SerialCommunicate : Communicate
     {
         private readonly SerialPort _serialPort;
@@ -22,10 +19,10 @@ namespace Com
             };
         }
 
-        protected override Task<Stream> Connect()
+        protected async override Task<Stream> GetStreamAfterConnect()
         {
-            _serialPort.Open();
-            return Task.FromResult(_serialPort.BaseStream);
+            await Task.Run(_serialPort.Open).Timeout(_timeout);
+            return _serialPort.BaseStream;
         }
 
         public override void Dispose()

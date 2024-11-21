@@ -1,15 +1,13 @@
 ﻿using Com.Common;
 using System.Net.Sockets;
+using System.Text;
 
-namespace Com.Tcp
+namespace Com
 {
-    /// <summary>
-    /// tcp client
-    /// </summary>
     public class TcpCommunicate : Communicate
     {
-        private readonly string _ip;
         private readonly int _port;
+        private readonly string _ip;
         private readonly TcpClient _client = new();
 
         public TcpCommunicate(string ip, int port, int timeout = 1000) :
@@ -19,9 +17,9 @@ namespace Com.Tcp
             _port = port;
         }
 
-        protected override async Task<Stream> Connect()
+        protected override async Task<Stream> GetStreamAfterConnect()
         {
-            await _client.ConnectAsync(_ip, _port);
+            await _client.ConnectAsync(_ip, _port).Timeout(_timeout);
             return _client.GetStream();
         }
 
@@ -29,6 +27,14 @@ namespace Com.Tcp
         {
             base.Dispose();
             _client.Dispose();
+        }
+
+        public static async void TestPlay()
+        {
+            TcpCommunicate tcp = new("127.0.0.1", 6053, 5000);
+            await tcp.ConnectAsync();
+            var v = await tcp.ReadAsync();
+            Console.WriteLine(Encoding.UTF8.GetString(v));
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ namespace Com.Common
     /// </summary>
     public abstract class Communicate
     {
-        private readonly SemaphoreSlim _slim = new(1);
+        private readonly SemaphoreSlim _slim = new(1); //other thread lock
         protected readonly int _timeout;
 
         private Stream _stream;
@@ -21,45 +20,58 @@ namespace Com.Common
 
         public async Task ConnectAsync()
         {
-            _stream = await Connect().Timeout(_timeout);
+            _stream = await GetStreamAfterConnect().Timeout(_timeout);
 
             if (_stream is null)
-                throw new Exception();
+                throw new Exception("stream is null");
         }
 
-        public async Task<IEnumerable<byte>> ReadAsync()
+        private async Task<byte[]> Read(int size, int timeout)
         {
-            IEnumerable<byte> receive;
+            var buffer = new byte[size];
 
-            _slim.Wait();
-            try
-            {
-                receive = await Read();
-            }
-            catch (Exception ex)
-            {
-                _slim.Release();
-                throw new Exception(string.Empty, ex);
-            }
-            _slim.Release();
+            var len = await _stream.ReadAsync(buffer).Timeout(timeout);
 
-            return receive;
+            var bufferData = new byte[len];
+            Array.Copy(buffer, bufferData, len);
+            return bufferData;
         }
 
-        public async Task WriteAsync(IEnumerable<byte> data)
+        public async Task<byte[]> ReadAsync()
         {
-            _slim.Wait();
-            try
+            IEnumerable<byte> resultData = []; //return data
+
+            const int BUFFER_SIZE = 1024;
+
+            var data = await Read(BUFFER_SIZE, _timeout);
+
+            if (data.Length < BUFFER_SIZE)
+                return data;
+
+            resultData = resultData.Concat(data);
+
+            while (true) //receive data >= buffer size
             {
-                await _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
+                try
+                {
+                    data = await Read(BUFFER_SIZE, _timeout / 10);
+                }
+                catch (TimeoutException) //read data empty
+                {
+                    break;
+                }
+
+                resultData = resultData.Concat(data);
+
+                if (data.Length < BUFFER_SIZE) //all data receive
+                    break;
             }
-            catch (Exception ex)
-            {
-                _slim.Release();
-                throw new Exception(string.Empty, ex);
-            }
-            _slim.Release();
+
+            return resultData.ToArray();
         }
+
+        public ValueTask WriteAsync(IEnumerable<byte> data) =>
+            _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
 
         /// <summary>
         /// write and read
@@ -72,12 +84,12 @@ namespace Com.Common
         {
             IEnumerable<byte> receive;
 
-            _slim.Wait();
+            await _slim.WaitAsync();
             try
             {
                 await _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
                 await Task.Delay(readDelay);
-                receive = await Read();
+                receive = await ReadAsync();
             }
             catch (Exception ex)
             {
@@ -90,62 +102,10 @@ namespace Com.Common
         }
 
         /// <summary>
-        /// can bigdata read
-        /// </summary>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        private async Task<IEnumerable<byte>> Read()
-        {
-            if (_stream is null)
-                throw new Exception();
-
-            IEnumerable<byte> receiveList = []; //return data
-
-            bool isLoop = false; //check buffer size < read data length
-
-            const int REPEAT_TIMEOUT = 100;
-
-            while (true)
-            {
-                const int BUFFER_SIZE = 1024;
-                int len;
-
-                var buffer = new byte[BUFFER_SIZE];
-
-                if (isLoop)
-                {
-                    try //repeat read
-                    {
-                        len = await _stream.ReadAsync(buffer).Timeout(REPEAT_TIMEOUT); //read repeat, wait short time
-                    }
-                    catch //if len == BUFFER_SIZE, repeat data zero
-                    {
-                        break;
-                    }
-                }
-                else //first read
-                {
-                    len = await _stream.ReadAsync(buffer).Timeout(_timeout);
-                }
-
-                var receive = new byte[len];
-                Array.Copy(buffer, receive, len); //receive data length is receive length
-                receiveList = receiveList.Concat(receive);
-
-                if (len < BUFFER_SIZE) //data end
-                    break;
-
-                isLoop = true;
-            }
-
-            return receiveList;
-        }
-
-        /// <summary>
         /// module init and set stream
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<Stream> Connect();
+        protected abstract Task<Stream> GetStreamAfterConnect();
 
         public virtual void Dispose() => _stream.Dispose();
 
