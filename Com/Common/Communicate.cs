@@ -80,9 +80,9 @@ namespace Com.Common
         /// <param name="readDelay">write and delay and read</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public async Task<IEnumerable<byte>> QueryAsync(IEnumerable<byte> data, int readDelay = 0)
+        public async Task<byte[]> QueryAsync(IEnumerable<byte> data, int readDelay = 0)
         {
-            IEnumerable<byte> receive;
+            byte[] receive;
 
             await _slim.WaitAsync();
             try

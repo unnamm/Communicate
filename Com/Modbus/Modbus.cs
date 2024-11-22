@@ -17,7 +17,7 @@ namespace Com.Modbus
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        protected Task<IEnumerable<byte>> query(byte[] data) => _communicate.QueryAsync(data);
+        protected Task<byte[]> query(byte[] data) => _communicate.QueryAsync(data);
 
         /// <summary>
         /// ushort -> bool[16]
