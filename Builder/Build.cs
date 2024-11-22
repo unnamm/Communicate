@@ -14,7 +14,7 @@ namespace Builder
     public class Build
     {
         private readonly IProtocol _protocol;
-        private readonly List<IPacket> _packetList = [];
+        private readonly List<IPacket> _packetList = []; //added all packets
 
         public Build(IProtocol protocol)
         {

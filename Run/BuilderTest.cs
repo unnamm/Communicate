@@ -10,14 +10,13 @@ using System.Threading.Tasks;
 
 namespace Run
 {
-    public class SamplePacket : TwoWayPacket<double> //test packet
+    public class SamplePacket : TwoWayPacket<double> //test packet1
     {
         public override string QueryCommand() => "get data";
 
         public override string WriteCommand() => "set data {0}";
 
-        protected override double Convert(string receiveData) =>
-            double.Parse(receiveData);
+        protected override double Convert(string receiveData) => double.Parse(receiveData);
     }
 
     public class SampleReadPacket : QueryPacket<string> //test packet2

@@ -11,7 +11,7 @@ internal class Program
     {
         Console.WriteLine("Hello");
 
-        SampleDevice.SampleTest();
+        BuilderTest.SampleTest();
 
         Console.ReadLine();
     }
