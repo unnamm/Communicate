@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Com.Interface;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,70 +7,110 @@ using System.Threading.Tasks;
 
 namespace Com.Modbus
 {
-    public class ModbusTCP : Modbus
+    public class ModbusTCP : IModbus
     {
-        public ModbusTCP(TcpCommunicate c) : base(c)
+        public Task<Dictionary<ushort, bool>> ReadCoils(ushort startAddress, ushort readNum, byte slave = 1)
         {
+            throw new NotImplementedException();
         }
 
-        public override async Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 0x01)
+        public Task<Dictionary<ushort, bool>> ReadDiscreteInputs(ushort startAddress, ushort readNum, byte slave = 1)
         {
-            if (code != FunctionCode.ReadHolingRegisters && code != FunctionCode.ReadInputRegisters)
-            {
-                throw new Exception("incorrect code");
-            }
-
-            var send = makeSendData(code, address, readNum, slave);
-
-            var read = await Query(send);
-
-            return getUshorts(read.ToArray());
+            throw new NotImplementedException();
         }
 
-        public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>
-            Query(makeSendData(FunctionCode.WriteSingleRegister, address, value, slave));
-
-        /// <summary>
-        /// make request one data
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="startAddress"></param>
-        /// <param name="readNum"></param>
-        /// <returns></returns>
-        private static byte[] makeSendData(FunctionCode code, ushort startAddress, ushort readNum, byte slave)
+        public Task<Dictionary<ushort, ushort>> ReadHoldingRegisters(ushort startAddress, ushort readNum, byte slave = 1)
         {
-            var addresses = BitConverter.GetBytes(startAddress);
-            var readNums = BitConverter.GetBytes(readNum);
-
-            byte[] sendBuff =
-            [
-                0x00, 0x01, //Transaction Identifier, read write pair
-                0x00, 0x00, //Protocol Identifier, 0000 fix
-                0x00, 0x06, //Length
-                slave,       //Unit Identifier, slave
-                (byte)code, //Function Code
-                addresses[1], addresses[0], //Starting Address
-                readNums[1], readNums[0] //read num, value
-            ];
-
-            return sendBuff;
+            throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// get data array from receive data
-        /// </summary>
-        /// <param name="read">receive data</param>
-        /// <returns></returns>
-        private static ushort[] getUshorts(byte[] read)
+        public Task<Dictionary<ushort, ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = 1)
         {
-            var receiveDatas = new ushort[read[8] / 2];
-
-            for (int i = 0; i < receiveDatas.Length; i++)
-            {
-                receiveDatas[i] = BitConverter.ToUInt16([read[10 + i * 2], read[9 + i * 2]]);
-            }
-            return receiveDatas;
+            throw new NotImplementedException();
         }
+
+        public void WriteMultipleCoils(ushort startAddress, IEnumerable<bool> values, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteMultipleRegisters(ushort address, IEnumerable<ushort> data, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteSingleCoil(ushort address, bool value, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteSingleRegister(ushort address, ushort data, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        //public ModbusTCP(TcpCommunicate c) : base(c)
+        //{
+        //}
+
+        //public override async Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 0x01)
+        //{
+        //    if (code != FunctionCode.ReadHolingRegisters && code != FunctionCode.ReadInputRegisters)
+        //    {
+        //        throw new Exception("incorrect code");
+        //    }
+
+        //    var send = makeSendData(code, address, readNum, slave);
+
+        //    var read = await Query(send);
+
+        //    return getUshorts(read.ToArray());
+        //}
+
+        //public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>
+        //    Query(makeSendData(FunctionCode.WriteSingleRegister, address, value, slave));
+
+        ///// <summary>
+        ///// make request one data
+        ///// </summary>
+        ///// <param name="code"></param>
+        ///// <param name="startAddress"></param>
+        ///// <param name="readNum"></param>
+        ///// <returns></returns>
+        //private static byte[] makeSendData(FunctionCode code, ushort startAddress, ushort readNum, byte slave)
+        //{
+        //    var addresses = BitConverter.GetBytes(startAddress);
+        //    var readNums = BitConverter.GetBytes(readNum);
+
+        //    byte[] sendBuff =
+        //    [
+        //        0x00, 0x01, //Transaction Identifier, read write pair
+        //        0x00, 0x00, //Protocol Identifier, 0000 fix
+        //        0x00, 0x06, //Length
+        //        slave,       //Unit Identifier, slave
+        //        (byte)code, //Function Code
+        //        addresses[1], addresses[0], //Starting Address
+        //        readNums[1], readNums[0] //read num, value
+        //    ];
+
+        //    return sendBuff;
+        //}
+
+        ///// <summary>
+        ///// get data array from receive data
+        ///// </summary>
+        ///// <param name="read">receive data</param>
+        ///// <returns></returns>
+        //private static ushort[] getUshorts(byte[] read)
+        //{
+        //    var receiveDatas = new ushort[read[8] / 2];
+
+        //    for (int i = 0; i < receiveDatas.Length; i++)
+        //    {
+        //        receiveDatas[i] = BitConverter.ToUInt16([read[10 + i * 2], read[9 + i * 2]]);
+        //    }
+        //    return receiveDatas;
+        //}
 
         //public async Task WriteSingleCoil(ushort address, bool value)
         //{
@@ -144,5 +185,6 @@ namespace Com.Modbus
 
         //    return sendBuff;
         //}
+
     }
 }

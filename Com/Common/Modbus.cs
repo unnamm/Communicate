@@ -1,30 +1,18 @@
-﻿using Com.Common;
+﻿using Com.Interface;
 using System.Collections;
 
-namespace Com.Modbus
+namespace Com.Common
 {
     public abstract class Modbus
     {
-        readonly private Communicate _communicate;
+        protected readonly bool _isUseCRC;
+        protected readonly ICommunicate _communicate;
 
-        public Modbus(Communicate c)
+        public Modbus(ICommunicate c, bool isUseCRC)
         {
             _communicate = c;
+            _isUseCRC = isUseCRC;
         }
-
-        /// <summary>
-        /// write and read to stream
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        protected Task<byte[]> Query(byte[] data) => _communicate.QueryAsync(data);
-
-        /// <summary>
-        /// write to stream
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
-        protected Task WriteAsync(byte[] data) => _communicate.WriteAsync(data).AsTask();
 
         /// <summary>
         /// ushort -> bool[16]
@@ -51,8 +39,5 @@ namespace Com.Modbus
 
             return BitConverter.ToUInt16(bytes.ToArray());
         }
-
-        public abstract Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 0x01);
-        public abstract Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01);
     }
 }

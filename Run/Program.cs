@@ -10,7 +10,9 @@ internal class Program
     {
         Console.WriteLine("Hello");
 
-        Builder.BuilderTest.SampleTest();
+        //Builder.BuilderTest.SampleTest();
+
+        Com.Modbus.ModbusTest.SampleTestRTU();
 
         Console.ReadLine();
     }

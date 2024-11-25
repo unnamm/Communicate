@@ -1,71 +1,99 @@
-﻿using Com;
+﻿using Com.Interface;
 
 namespace Com.Modbus
 {
-    public class ModbusRTU : Modbus
+    public class ModbusRTU : Common.Modbus, IModbus
     {
-        private readonly bool _isUseCRC;
-
-        public ModbusRTU(SerialCommunicate c, bool isUseCRC) : base(c)
+        public ModbusRTU(ICommunicate c, bool isUseCRC = true) : base(c, isUseCRC)
         {
-            _isUseCRC = isUseCRC;
         }
 
-        public override async Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 0x01)
+        public Task<Dictionary<ushort, bool>> ReadCoils(ushort startAddress, ushort readNum, byte slave = 1)
         {
-            if (code != FunctionCode.ReadHolingRegisters && code != FunctionCode.ReadInputRegisters)
-            {
-                throw new Exception("incorrect code");
-            }
-
-            var sendData = makeSendData(FunctionCode.ReadInputRegisters, address, readNum, slave);
-
-            var receive = await Query(sendData);
-
-            return getUshorts(receive.ToArray());
+            throw new NotImplementedException();
         }
 
-        public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>
-            Query(makeSendData(FunctionCode.WriteSingleRegister, address, value, slave));
-
-        private byte[] makeSendData(FunctionCode code, ushort startAddress, ushort value, byte slaveAddress)
+        public Task<Dictionary<ushort, bool>> ReadDiscreteInputs(ushort startAddress, ushort readNum, byte slave = 1)
         {
-            var addresses = BitConverter.GetBytes(startAddress);
-            var values = BitConverter.GetBytes(value);
+            throw new NotImplementedException();
+        }
 
-            byte[] sendData =
+        public Task<Dictionary<ushort, ushort>> ReadHoldingRegisters(ushort startAddress, ushort readNum, byte slave = 1) =>
+            ReadRegisters(0x03, startAddress, readNum, slave);
+
+        public Task<Dictionary<ushort, ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = 1) =>
+            ReadRegisters(0x04, startAddress, readNum, slave);
+
+        public void WriteMultipleCoils(ushort startAddress, IEnumerable<bool> values, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteMultipleRegisters(ushort address, IEnumerable<ushort> data, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void WriteSingleCoil(ushort address, bool value, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async void WriteSingleRegister(ushort address, ushort data, byte slave = 1)
+        {
+            var addresses = BitConverter.GetBytes(address);
+            var datas = BitConverter.GetBytes(data);
+
+            List<byte> sendData =
             [
-                slaveAddress, //slave address
-                (byte)code, //function code
-                addresses[1], addresses[0], //start address
-                values[1], values[0], //read number
+                slave,
+                0x06,
+                addresses[1], addresses[0],
+                datas[1], datas[0],
             ];
 
             if (_isUseCRC)
             {
-                var crcs = BitConverter.GetBytes(getCRC(sendData)).Reverse();
-                return [.. sendData, .. crcs];
+                var crc = BitConverter.GetBytes(getCRC(sendData));
+                sendData.AddRange([crc[1], crc[0]]);
             }
-            return sendData;
+
+            await _communicate.QueryAsync(sendData);
         }
 
-        /// <summary>
-        /// get data array from receive data
-        /// </summary>
-        /// <param name="read">receive data</param>
-        /// <returns></returns>
-        private static ushort[] getUshorts(byte[] read)
+        private async Task<Dictionary<ushort, ushort>> ReadRegisters(byte code, ushort startAddress, ushort readNum, byte slave)
         {
-            var receiveDatas = new ushort[read[2] / 2];
+            var addresses = BitConverter.GetBytes(startAddress);
+            var readNums = BitConverter.GetBytes(readNum);
 
-            for (int i = 0; i < receiveDatas.Length; i++)
+            List<byte> sendData =
+            [
+                slave,
+                code,
+                addresses[1], addresses[0],
+                readNums[1], readNums[0],
+            ];
+
+            if (_isUseCRC)
             {
-                receiveDatas[i] = BitConverter.ToUInt16([read[4 + i * 2], read[3 + i * 2]]);
+                var crc = BitConverter.GetBytes(getCRC(sendData));
+                sendData.AddRange([crc[1], crc[0]]);
             }
-            return receiveDatas;
+
+            var receiveData = await _communicate.QueryAsync(sendData);
+
+            Dictionary<ushort, ushort> dic = [];
+            var byteCount = receiveData[2];
+            for (ushort i = 0; i < byteCount; i += 2)
+            {
+                var value = BitConverter.ToUInt16([receiveData[3 + i], receiveData[4 + i]]);
+                dic.Add((ushort)(startAddress + i), value);
+            }
+
+            return dic;
         }
 
-        private static ushort getCRC(byte[] data)
+        private static ushort getCRC(IEnumerable<byte> data)
         {
             ushort[] crcTable = [
             0X0000, 0XC0C1, 0XC181, 0X0140, 0XC301, 0X03C0, 0X0280, 0XC241,
@@ -110,37 +138,6 @@ namespace Com.Modbus
 
             return crc;
         }
-
-        //public async Task<BitArray> ReadCoils(byte slaveAddress, ushort startingAddress, ushort quantityOfCoils)
-        //{
-        //    if (quantityOfCoils > ushort.MaxValue)
-        //    {
-        //        throw new Exception("large read number");
-        //    }
-
-        //    var sendData = makeSendData(slaveAddress, FunctionCode.ReadCoil, startingAddress, quantityOfCoils);
-
-        //    var receive = await query(sendData);
-
-        //    //slaveAddress = receive[0]; //slave address
-        //    //var functionCode = (FunctionCode)receive[1]; //function code
-        //    var byteCount = receive[2]; //data byte number
-        //    var receiveData = new byte[byteCount]; //byte array data
-
-        //    for (int i = 0; i < receiveData.Length; i++)
-        //    {
-        //        receiveData[i] = receive[3 + i]; //coil state
-        //    }
-
-        //    var bitArray = new BitArray(receiveData); //byte array => bit array
-        //    var receiveCoils = new BitArray(quantityOfCoils); //return array
-        //    for (int i = 0; i < quantityOfCoils; i++)
-        //    {
-        //        receiveCoils[i] = bitArray[i];
-        //    }
-
-        //    return receiveCoils;
-        //}
 
     }
 }

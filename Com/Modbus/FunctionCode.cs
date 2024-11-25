@@ -9,7 +9,7 @@ namespace Com.Modbus
     public enum FunctionCode
     {
         None,
-        ReadCoil = 0x01,
+        ReadCoils = 0x01,
         ReadDiscreteInputs = 0x02,
         ReadHolingRegisters = 0x03,
         ReadInputRegisters = 0x04,
