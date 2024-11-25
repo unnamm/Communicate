@@ -86,7 +86,7 @@ namespace Com.Modbus
             var byteCount = receiveData[2];
             for (ushort i = 0; i < byteCount; i += 2)
             {
-                var value = BitConverter.ToUInt16([receiveData[3 + i], receiveData[4 + i]]);
+                var value = BitConverter.ToUInt16([receiveData[4 + i], receiveData[3 + i]]);
                 dic.Add((ushort)(startAddress + i), value);
             }
 
