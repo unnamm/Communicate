@@ -4,24 +4,27 @@ namespace Com.Modbus
 {
     public class ModbusRTU : Common.Modbus, IModbus
     {
-        public ModbusRTU(ICommunicate c, bool isUseCRC = true) : base(c, isUseCRC)
+        protected readonly bool _isUseCRC;
+
+        public ModbusRTU(ICommunicate c, bool isUseCRC = true) : base(c)
         {
+            _isUseCRC = isUseCRC;
         }
 
-        public Task<Dictionary<ushort, bool>> ReadCoils(ushort startAddress, ushort readNum, byte slave = 1)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<Dictionary<ushort, bool>> ReadDiscreteInputs(ushort startAddress, ushort readNum, byte slave = 1)
+        public Task<IEnumerable<bool[]>> ReadCoils(ushort startAddress, ushort readNum, byte slave = 1)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Dictionary<ushort, ushort>> ReadHoldingRegisters(ushort startAddress, ushort readNum, byte slave = 1) =>
+        public Task<IEnumerable<bool[]>> ReadDiscreteInputs(ushort startAddress, ushort readNum, byte slave = 1)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<ushort>> ReadHoldingRegisters(ushort startAddress, ushort readNum, byte slave = 1) =>
             ReadRegisters(0x03, startAddress, readNum, slave);
 
-        public Task<Dictionary<ushort, ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = 1) =>
+        public Task<IEnumerable<ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = 1) =>
             ReadRegisters(0x04, startAddress, readNum, slave);
 
         public void WriteMultipleCoils(ushort startAddress, IEnumerable<bool> values, byte slave = 1)
@@ -41,13 +44,37 @@ namespace Com.Modbus
 
         public async void WriteSingleRegister(ushort address, ushort data, byte slave = 1)
         {
+            var sendData = MakeSendData(0x06, address, data, slave);
+
+            await _communicate.QueryAsync(sendData);
+        }
+
+        private async Task<IEnumerable<ushort>> ReadRegisters(byte code, ushort startAddress, ushort readNum, byte slave)
+        {
+            var sendData = MakeSendData(code, startAddress, readNum, slave);
+
+            var receiveData = await _communicate.QueryAsync(sendData);
+
+            List<ushort> dic = [];
+            var byteCount = receiveData[2];
+            for (ushort i = 0; i < byteCount; i += 2)
+            {
+                var value = BitConverter.ToUInt16([receiveData[4 + i], receiveData[3 + i]]);
+                dic.Add(value);
+            }
+
+            return dic;
+        }
+
+        private List<byte> MakeSendData(byte code, ushort address, ushort data, byte slave)
+        {
             var addresses = BitConverter.GetBytes(address);
             var datas = BitConverter.GetBytes(data);
 
             List<byte> sendData =
             [
                 slave,
-                0x06,
+                code,
                 addresses[1], addresses[0],
                 datas[1], datas[0],
             ];
@@ -57,40 +84,7 @@ namespace Com.Modbus
                 var crc = BitConverter.GetBytes(getCRC(sendData));
                 sendData.AddRange([crc[1], crc[0]]);
             }
-
-            await _communicate.QueryAsync(sendData);
-        }
-
-        private async Task<Dictionary<ushort, ushort>> ReadRegisters(byte code, ushort startAddress, ushort readNum, byte slave)
-        {
-            var addresses = BitConverter.GetBytes(startAddress);
-            var readNums = BitConverter.GetBytes(readNum);
-
-            List<byte> sendData =
-            [
-                slave,
-                code,
-                addresses[1], addresses[0],
-                readNums[1], readNums[0],
-            ];
-
-            if (_isUseCRC)
-            {
-                var crc = BitConverter.GetBytes(getCRC(sendData));
-                sendData.AddRange([crc[1], crc[0]]);
-            }
-
-            var receiveData = await _communicate.QueryAsync(sendData);
-
-            Dictionary<ushort, ushort> dic = [];
-            var byteCount = receiveData[2];
-            for (ushort i = 0; i < byteCount; i += 2)
-            {
-                var value = BitConverter.ToUInt16([receiveData[4 + i], receiveData[3 + i]]);
-                dic.Add((ushort)(startAddress + i), value);
-            }
-
-            return dic;
+            return sendData;
         }
 
         private static ushort getCRC(IEnumerable<byte> data)

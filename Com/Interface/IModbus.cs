@@ -36,7 +36,7 @@ namespace Com.Interface
         /// <param name="readNum"></param>
         /// <param name="slave"></param>
         /// <returns>key: address, value: bool</returns>
-        Task<Dictionary<ushort, bool>> ReadCoils(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
+        Task<IEnumerable<bool[]>> ReadCoils(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
 
         /// <summary>
         /// func code: 0x05,
@@ -64,7 +64,7 @@ namespace Com.Interface
         /// <param name="readNum"></param>
         /// <param name="slave"></param>
         /// <returns>key: address, value: bool</returns>
-        Task<Dictionary<ushort, bool>> ReadDiscreteInputs(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
+        Task<IEnumerable<bool[]>> ReadDiscreteInputs(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
 
         #endregion
 
@@ -79,7 +79,7 @@ namespace Com.Interface
         /// <param name="readNum"></param>
         /// <param name="slave"></param>
         /// <returns>key: address, value: ushort</returns>
-        Task<Dictionary<ushort, ushort>> ReadHoldingRegisters(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
+        Task<IEnumerable<ushort>> ReadHoldingRegisters(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
 
         /// <summary>
         /// func code: 0x06,
@@ -107,7 +107,7 @@ namespace Com.Interface
         /// <param name="readNum"></param>
         /// <param name="slave"></param>
         /// <returns>key: address, value: ushort</returns>
-        Task<Dictionary<ushort, ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
+        Task<IEnumerable<ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
 
         #endregion
     }

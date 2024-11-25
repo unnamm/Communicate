@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Com.Interface;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Com.Common
     /// <summary>
     /// communication parent
     /// </summary>
-    public abstract class Communicate : IDisposable
+    public abstract class Communicate : IDisposable, ICommunicate
     {
         private readonly SemaphoreSlim _slim = new(1); //other thread lock
         protected readonly int _timeout;

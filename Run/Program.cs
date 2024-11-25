@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Com.Common;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
@@ -10,9 +13,18 @@ internal class Program
     {
         Console.WriteLine("Hello");
 
-        //Builder.BuilderTest.SampleTest();
 
-        Com.Modbus.ModbusTest.SampleTestRTU();
+        byte data = 0x0f;
+
+        List<bool> list = [];
+
+        var bitArray = new BitArray(data);
+        foreach (var bit in bitArray)
+        {
+            list.Add((bool)bit);
+        }
+
+
 
         Console.ReadLine();
     }
