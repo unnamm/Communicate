@@ -20,13 +20,13 @@ namespace Com.Modbus
 
             var sendData = makeSendData(FunctionCode.ReadInputRegisters, address, readNum, slave);
 
-            var receive = await query(sendData);
+            var receive = await Query(sendData);
 
             return getUshorts(receive.ToArray());
         }
 
         public override Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01) =>
-            query(makeSendData(FunctionCode.WriteSingleRegister, address, value, slave));
+            Query(makeSendData(FunctionCode.WriteSingleRegister, address, value, slave));
 
         private byte[] makeSendData(FunctionCode code, ushort startAddress, ushort value, byte slaveAddress)
         {

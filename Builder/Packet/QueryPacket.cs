@@ -15,7 +15,7 @@ namespace Builder.Packet
     {
         public object[]? QueryParams { get; set; }
 
-        public string? ReceiveData { get; set; }
+        public string ReceiveData { get; set; } = string.Empty;
 
         /// <summary>
         /// get converted data
@@ -25,7 +25,7 @@ namespace Builder.Packet
         public T GetData()
         {
             if (string.IsNullOrEmpty(ReceiveData))
-                throw new NullReferenceException("query is null or empty");
+                throw new NullReferenceException("receive data is empty");
 
             return Convert(ReceiveData);
         }

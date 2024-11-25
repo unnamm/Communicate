@@ -16,7 +16,7 @@ namespace Builder.Interface
         /// <summary>
         /// receive data after write query
         /// </summary>
-        string? ReceiveData { get; set; }
+        string ReceiveData { get; set; }
 
         /// <summary>
         /// string.format command, params are {0} {1} ...

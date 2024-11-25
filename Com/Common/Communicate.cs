@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ namespace Com.Common
     /// <summary>
     /// communication parent
     /// </summary>
-    public abstract class Communicate
+    public abstract class Communicate : IDisposable
     {
         private readonly SemaphoreSlim _slim = new(1); //other thread lock
         protected readonly int _timeout;
@@ -37,6 +38,10 @@ namespace Com.Common
             return bufferData;
         }
 
+        /// <summary>
+        /// read all data
+        /// </summary>
+        /// <returns>receive bytes</returns>
         public async Task<byte[]> ReadAsync()
         {
             IEnumerable<byte> resultData = []; //return data
@@ -54,7 +59,7 @@ namespace Com.Common
             {
                 try
                 {
-                    data = await Read(BUFFER_SIZE, _timeout / 10);
+                    data = await Read(BUFFER_SIZE, _timeout / 10); //read next data
                 }
                 catch (TimeoutException) //read data empty
                 {
@@ -70,8 +75,12 @@ namespace Com.Common
             return resultData.ToArray();
         }
 
-        public ValueTask WriteAsync(IEnumerable<byte> data) =>
-            _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
+        /// <summary>
+        /// write
+        /// </summary>
+        /// <param name="data">send bytes</param>
+        /// <returns>task</returns>
+        public ValueTask WriteAsync(IEnumerable<byte> data) => _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
 
         /// <summary>
         /// write and read
@@ -108,6 +117,5 @@ namespace Com.Common
         protected abstract Task<Stream> GetStreamAfterConnect();
 
         public virtual void Dispose() => _stream.Dispose();
-
     }
 }

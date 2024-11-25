@@ -1,4 +1,4 @@
-﻿using Builder;
+﻿using Builder.Interface;
 using Builder.Packet;
 using Com;
 using Com.Common;
@@ -8,18 +8,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Run
+namespace Builder
 {
-    public class SamplePacket : TwoWayPacket<double> //test packet1
+    public class SampleTwoWayPacket : TwoWayPacket<double> //test packet1
     {
-        public override string QueryCommand() => "get data";
+        public override string QueryCommand() => "get data {0}";
 
         public override string WriteCommand() => "set data {0}";
 
         protected override double Convert(string receiveData) => double.Parse(receiveData);
     }
 
-    public class SampleReadPacket : QueryPacket<string> //test packet2
+    public class ReadIDNPacket : QueryPacket<string> //test packet2
     {
         public override string QueryCommand() => "*IDN?";
 
@@ -27,7 +27,7 @@ namespace Run
     }
 
 
-    public class SampleDevice : TcpCommunicate, IProtocol //test device
+    public class SampleDevice : TcpCommunicate, IProtocol //test device, need IProtocol
     {
         public SampleDevice(string ip, int port) : base(ip, port)
         {
@@ -36,7 +36,7 @@ namespace Run
         public async Task<string> QueryAsync(string command)
         {
             var data = await base.QueryAsync(Encoding.UTF8.GetBytes(command));
-            return Encoding.UTF8.GetString(data.ToArray());
+            return Encoding.UTF8.GetString(data);
         }
 
         public Task WriteAsync(string command) =>
@@ -50,20 +50,23 @@ namespace Run
             SampleDevice device = new("127.0.0.1", 6053);
             await device.ConnectAsync();
 
-            SamplePacket packet = new SamplePacket();
-            packet.WriteParams = [15.5d];
+            SampleTwoWayPacket packet = new()
+            {
+                WriteParams = [15.5d],
+                QueryParams = ["@101"],
+            };
 
             Build build = new(device);
             build.Add(packet);
 
             await build.Write(); //set data 15.5
 
-            build.Add(new SampleReadPacket());
+            build.Add(new ReadIDNPacket());
 
-            await build.Query(); //get data //*IDN?
+            await build.Query(); //get data @101 //*IDN?
 
-            var doubleData = build.GetPacket<SamplePacket>().GetData();
-            var stringData = build.GetPacket<SampleReadPacket>().GetData();
+            var doubleData = build.GetPacket<SampleTwoWayPacket>().GetData();
+            var stringData = build.GetPacket<ReadIDNPacket>().GetData();
 
         }
     }

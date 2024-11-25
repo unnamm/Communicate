@@ -21,6 +21,10 @@ namespace Builder
             _protocol = protocol;
         }
 
+        /// <summary>
+        /// All packet sequentially query
+        /// </summary>
+        /// <returns></returns>
         public async Task Query()
         {
             foreach (var packet in _packetList)
@@ -33,6 +37,10 @@ namespace Builder
             }
         }
 
+        /// <summary>
+        /// All packet sequentially write
+        /// </summary>
+        /// <returns></returns>
         public async Task Write()
         {
             foreach (var packet in _packetList)

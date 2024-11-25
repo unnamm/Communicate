@@ -13,11 +13,18 @@ namespace Com.Modbus
         }
 
         /// <summary>
-        /// communication, write and read from stream
+        /// write and read to stream
         /// </summary>
         /// <param name="data"></param>
         /// <returns></returns>
-        protected Task<byte[]> query(byte[] data) => _communicate.QueryAsync(data);
+        protected Task<byte[]> Query(byte[] data) => _communicate.QueryAsync(data);
+
+        /// <summary>
+        /// write to stream
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        protected Task WriteAsync(byte[] data) => _communicate.WriteAsync(data).AsTask();
 
         /// <summary>
         /// ushort -> bool[16]
@@ -34,7 +41,7 @@ namespace Com.Modbus
         /// <exception cref="Exception"></exception>
         public static ushort Getushort(BitArray bitArray)
         {
-            if (bitArray.Count != sizeof(ushort) * 8)
+            if (bitArray.Count != sizeof(ushort) * 8) //need 16 bytes
             {
                 throw new Exception("bit array size error");
             }
@@ -45,14 +52,6 @@ namespace Com.Modbus
             return BitConverter.ToUInt16(bytes.ToArray());
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="code">ReadHolingRegisters, ReadInputRegisters</param>
-        /// <param name="address"></param>
-        /// <param name="readNum"></param>
-        /// <param name="slave"></param>
-        /// <returns></returns>
         public abstract Task<ushort[]> ReadRegisters(FunctionCode code, ushort address, ushort readNum, byte slave = 0x01);
         public abstract Task WriteSingleRegister(ushort address, ushort value, byte slave = 0x01);
     }

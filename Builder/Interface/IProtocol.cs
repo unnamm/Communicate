@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Com.Common
+namespace Builder.Interface
 {
     /// <summary>
     /// communication device
