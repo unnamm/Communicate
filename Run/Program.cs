@@ -1,4 +1,6 @@
-﻿using Com.Common;
+﻿using Builder;
+using Com.Common;
+using Run.Test;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,18 +15,7 @@ internal class Program
     {
         Console.WriteLine("Hello");
 
-
-        byte data = 0x0f;
-
-        List<bool> list = [];
-
-        var bitArray = new BitArray(data);
-        foreach (var bit in bitArray)
-        {
-            list.Add((bool)bit);
-        }
-
-
+        BuilderTest.Run();
 
         Console.ReadLine();
     }
