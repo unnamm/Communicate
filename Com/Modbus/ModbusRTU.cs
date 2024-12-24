@@ -2,13 +2,15 @@
 
 namespace Com.Modbus
 {
-    public class ModbusRTU : Common.Modbus, IModbus
+    public class ModbusRTU : IModbus
     {
         protected readonly bool _isUseCRC;
+        protected readonly ICommunicate _communicate;
 
-        public ModbusRTU(ICommunicate c, bool isUseCRC = true) : base(c)
+        public ModbusRTU(ICommunicate c, bool isUseCRC = true)
         {
             _isUseCRC = isUseCRC;
+            _communicate = c;
         }
 
         public Task<IEnumerable<bool[]>> ReadCoils(ushort startAddress, ushort readNum, byte slave = 1)

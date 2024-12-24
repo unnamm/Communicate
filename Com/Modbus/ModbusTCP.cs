@@ -8,10 +8,13 @@ using System.Threading.Tasks;
 
 namespace Com.Modbus
 {
-    public class ModbusTCP : Common.Modbus, IModbus
+    public class ModbusTCP : IModbus
     {
-        public ModbusTCP(ICommunicate c) : base(c)
+        protected readonly ICommunicate _communicate;
+
+        public ModbusTCP(ICommunicate c)
         {
+            _communicate = c;
         }
 
         public Task<IEnumerable<bool[]>> ReadCoils(ushort startAddress, ushort readNum, byte slave = 1) =>

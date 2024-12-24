@@ -1,17 +1,9 @@
-﻿using Com.Interface;
-using System.Collections;
+﻿using System.Collections;
 
 namespace Com.Common
 {
     public abstract class Modbus
     {
-        protected readonly ICommunicate _communicate;
-
-        public Modbus(ICommunicate c)
-        {
-            _communicate = c;
-        }
-
         /// <summary>
         /// ushort -> bool[16]
         /// </summary>
