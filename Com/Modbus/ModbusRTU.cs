@@ -5,9 +5,9 @@ namespace Com.Modbus
     public class ModbusRTU : IModbus
     {
         protected readonly bool _isUseCRC;
-        protected readonly ICommunicate _communicate;
+        protected readonly IModbusProtocol _communicate;
 
-        public ModbusRTU(ICommunicate c, bool isUseCRC = true)
+        public ModbusRTU(IModbusProtocol c, bool isUseCRC = true)
         {
             _isUseCRC = isUseCRC;
             _communicate = c;

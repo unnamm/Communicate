@@ -31,7 +31,7 @@ namespace Run.Test
         private static async Task RunAsync(Build build)
         {
             build.Add(new ReadIDN()); //no param packet
-            build.Add(new SetTargetVolt() { WriteParams = [12d] }); //need write params
+            build.Add(new SetTargetVolt { WriteParams = [12d] }); //need write params
 
             await build.Write(); //write volt 12
             await build.Query(); //get idn, target volt

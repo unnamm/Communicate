@@ -17,7 +17,7 @@ namespace Com
             _port = port;
         }
 
-        protected override async Task<Stream> GetStreamAfterConnect()
+        protected override async Task<Stream> ConnectAndStream()
         {
             await _client.ConnectAsync(_ip, _port).Timeout(_timeout);
             return _client.GetStream();
@@ -25,8 +25,9 @@ namespace Com
 
         public override void Dispose()
         {
-            base.Dispose();
             _client.Dispose();
+            base.Dispose();
+            GC.SuppressFinalize(this);
         }
 
         public static async void TestPlay()

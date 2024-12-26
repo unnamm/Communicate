@@ -10,9 +10,9 @@ namespace Com.Modbus
 {
     public class ModbusTCP : IModbus
     {
-        protected readonly ICommunicate _communicate;
+        protected readonly IModbusProtocol _communicate;
 
-        public ModbusTCP(ICommunicate c)
+        public ModbusTCP(IModbusProtocol c)
         {
             _communicate = c;
         }

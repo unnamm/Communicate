@@ -11,9 +11,10 @@ namespace Com.Common
     /// <summary>
     /// communication parent
     /// </summary>
-    public abstract class Communicate : IDisposable, ICommunicate
+    public abstract class Communicate : IDisposable, IModbusProtocol
     {
         private readonly SemaphoreSlim _slim = new(1); //other thread lock
+
         protected readonly int _timeout;
 
         private Stream _stream;
@@ -22,7 +23,7 @@ namespace Com.Common
 
         public async Task ConnectAsync()
         {
-            _stream = await GetStreamAfterConnect().Timeout(_timeout);
+            _stream = await ConnectAndStream().Timeout(_timeout);
 
             if (_stream is null)
                 throw new Exception("stream is null");
@@ -115,8 +116,12 @@ namespace Com.Common
         /// module init and set stream
         /// </summary>
         /// <returns></returns>
-        protected abstract Task<Stream> GetStreamAfterConnect();
+        protected abstract Task<Stream> ConnectAndStream();
 
-        public virtual void Dispose() => _stream.Dispose();
+        public virtual void Dispose()
+        {
+            _stream.Dispose();
+            GC.SuppressFinalize(this);
+        }
     }
 }

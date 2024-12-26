@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Com.Interface
 {
-    public interface ICommunicate
+    public interface IModbusProtocol
     {
         Task<byte[]> QueryAsync(IEnumerable<byte> data, int readDelay = 0);
     }

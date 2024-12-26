@@ -19,7 +19,7 @@ namespace Com
             };
         }
 
-        protected async override Task<Stream> GetStreamAfterConnect()
+        protected async override Task<Stream> ConnectAndStream()
         {
             await Task.Run(_serialPort.Open).Timeout(_timeout);
             return _serialPort.BaseStream;
@@ -27,8 +27,9 @@ namespace Com
 
         public override void Dispose()
         {
-            base.Dispose();
             _serialPort.Dispose();
+            base.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }
