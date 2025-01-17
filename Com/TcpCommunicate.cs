@@ -10,6 +10,8 @@ namespace Com
         private readonly string _ip;
         private readonly TcpClient _client = new();
 
+        public override bool IsConnected => _client.Connected;
+
         public TcpCommunicate(string ip, int port, int timeout = 1000) :
             base(timeout)
         {

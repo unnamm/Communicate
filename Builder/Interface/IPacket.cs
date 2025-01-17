@@ -11,5 +11,8 @@ namespace Builder.Interface
     /// </summary>
     public interface IPacket
     {
+        object[]? Params { get; set; }
+
+        string GetCommand();
     }
 }

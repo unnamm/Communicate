@@ -10,12 +10,8 @@ namespace Run.Test.Packet
     /// <summary>
     /// setting target volt
     /// </summary>
-    internal class SetTargetVolt : TwoWayPacket<double>
+    internal class SetTargetVolt : WritePacket
     {
-        public override string QueryCommand() => "get data"; //get targetvolt
-
-        public override string WriteCommand() => "set data {0}"; //set targetvolt
-
-        protected override double Convert(string receiveData) => double.Parse(receiveData);
+        public override string GetCommand() => "set volt: {0}";
     }
 }

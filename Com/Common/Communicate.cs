@@ -19,6 +19,8 @@ namespace Com.Common
 
         private Stream _stream;
 
+        public abstract bool IsConnected { get; }
+
         public Communicate(int timeout = 1000) => _timeout = timeout;
 
         public async Task ConnectAsync()

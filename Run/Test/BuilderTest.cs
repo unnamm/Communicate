@@ -1,9 +1,5 @@
 ﻿using Builder;
-using Builder.Interface;
-using Builder.Packet;
 using Com;
-using Com.Common;
-using Run.Test.Device;
 using Run.Test.Packet;
 using System;
 using System.Collections.Generic;
@@ -13,32 +9,36 @@ using System.Threading.Tasks;
 
 namespace Run.Test
 {
+    /// <summary>
+    /// how to use
+    /// </summary>
     public class BuilderTest
     {
         public static async void Run() //run test
         {
-            SampleDevice1 device1 = new("127.0.0.1", 6053);
+            //tcp test
+            TcpCommunicate tcp = new("127.0.0.1", 6053);
+
+            Device device1 = new(tcp);
             await device1.ConnectAsync();
 
-            await RunAsync(new(device1)); //build match device
+            await device1.WriteAsync(new SetTargetVolt(), "15.5");
+            var idnData = await device1.QueryAsync(new ReadIDN()); //return string
+            var sample = await device1.QueryAsync(new QuerySamplePacket(), 1); //return double[]
 
-            SampleDevice2 device2 = new("COM1", 9600, 8, System.IO.Ports.Parity.None);
-            await device2.ConnectAsync();
+            device1.Dispose();
 
-            await RunAsync(new(device2)); //same packet, other device
-        }
+            //serial test
+            SerialCommunicate serial = new("COM1", 9600, 8, System.IO.Ports.Parity.None);
 
-        private static async Task RunAsync(Build build)
-        {
-            build.Add(new ReadIDN()); //no param packet
-            build.Add(new SetTargetVolt { WriteParams = [12d] }); //need write params
+            device1 = new(serial); //same device, other communicate
+            await device1.ConnectAsync();
 
-            await build.Write(); //write volt 12
-            await build.Query(); //get idn, target volt
+            await device1.WriteAsync(new SetTargetVolt(), "15.5");
+            idnData = await device1.QueryAsync(new ReadIDN());
+            sample = await device1.QueryAsync(new QuerySamplePacket(), 1);
 
-            //result query
-            var doubleData = build.GetPacket<SetTargetVolt>().GetData();
-            var stringData = build.GetPacket<ReadIDN>().GetData();
+            device1.Dispose();
         }
     }
 }

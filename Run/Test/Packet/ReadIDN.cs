@@ -9,7 +9,7 @@ namespace Run.Test.Packet
 {
     internal class ReadIDN : QueryPacket<string>
     {
-        public override string QueryCommand() => "*IDN?";
+        public override string GetCommand() => "*IDN?";
 
         protected override string Convert(string receiveData) => receiveData;
     }

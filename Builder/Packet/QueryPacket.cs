@@ -8,29 +8,26 @@ using System.Threading.Tasks;
 namespace Builder.Packet
 {
     /// <summary>
-    /// 
+    /// write and recieve packet
     /// </summary>
     /// <typeparam name="T">receive data type</typeparam>
-    public abstract class QueryPacket<T> : IQueryPacket
+    public abstract class QueryPacket<T> : IPacket
     {
-        public object[]? QueryParams { get; set; }
-
-        public string ReceiveData { get; set; } = string.Empty;
+        public object[]? Params { get; set; }
+        public abstract string GetCommand();
 
         /// <summary>
         /// get converted data
         /// </summary>
         /// <returns></returns>
         /// <exception cref="NullReferenceException"></exception>
-        public T GetData()
+        public T GetData(string receiveData)
         {
-            if (string.IsNullOrEmpty(ReceiveData))
+            if (string.IsNullOrEmpty(receiveData))
                 throw new NullReferenceException("receive data is empty");
 
-            return Convert(ReceiveData);
+            return Convert(receiveData);
         }
-
-        public abstract string QueryCommand();
 
         /// <summary>
         /// string -> T convert

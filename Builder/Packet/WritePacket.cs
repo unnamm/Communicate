@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Builder.Packet
 {
-    internal abstract class WritePacket : IWritePacket
+    public abstract class WritePacket : IPacket
     {
-        public object[]? WriteParams { get; set; }
+        public object[]? Params { get; set; }
 
-        public abstract string WriteCommand();
+        public abstract string GetCommand();
     }
 }
