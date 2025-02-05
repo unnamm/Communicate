@@ -1,11 +1,11 @@
-﻿using Builder.Interface;
+﻿using Com.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Builder.Packet
+namespace Com.Packet
 {
     /// <summary>
     /// write and recieve packet

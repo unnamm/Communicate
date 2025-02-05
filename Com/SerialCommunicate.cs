@@ -7,7 +7,7 @@ namespace Com
     {
         private readonly SerialPort _serialPort;
 
-        public override bool IsConnected => _serialPort.IsOpen;
+        //public override bool IsConnected => _serialPort.IsOpen;
 
         public SerialCommunicate(string portName, int baudRate, int dataBits, Parity parity, int timeout = 1000) :
             base(timeout)

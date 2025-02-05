@@ -1,4 +1,5 @@
 ﻿using Com.Interface;
+using Com.Packet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -11,7 +12,7 @@ namespace Com.Common
     /// <summary>
     /// communication parent
     /// </summary>
-    public abstract class Communicate : IDisposable, IModbusProtocol
+    public abstract class Communicate : IDisposable, IQueryProtocol
     {
         private readonly SemaphoreSlim _slim = new(1); //other thread lock
 
@@ -19,9 +20,10 @@ namespace Com.Common
 
         private Stream _stream;
 
-        public abstract bool IsConnected { get; }
-
-        public Communicate(int timeout = 1000) => _timeout = timeout;
+        public Communicate(int timeout = 1000)
+        {
+            _timeout = timeout;
+        }
 
         public async Task ConnectAsync()
         {
@@ -29,6 +31,46 @@ namespace Com.Common
 
             if (_stream is null)
                 throw new Exception("stream is null");
+        }
+
+        public async Task<T> QueryAsync<T>(QueryPacket<T> packet, params object[] @params)
+        {
+            packet.Params = @params;
+            var sendData = MakeParamsCommand(packet.GetCommand(), @params);
+
+            var receiveData = await QueryAsync(Encoding.UTF8.GetBytes(sendData));
+
+            return packet.GetData(Encoding.UTF8.GetString(receiveData));
+        }
+
+        public ValueTask WriteAsync(WritePacket packet, params object[] @params)
+        {
+            packet.Params = @params;
+            var sendData = MakeParamsCommand(packet.GetCommand(), @params);
+
+            return WriteAsync(Encoding.UTF8.GetBytes(sendData));
+        }
+
+        private static string MakeParamsCommand(string command, object[]? writeParams)
+        {
+            if (command.Contains("{0}")) //use param
+            {
+                if (writeParams == null || writeParams.Length == 0)
+                {
+                    throw new Exception("param need");
+                }
+
+                return string.Format(command, writeParams);
+            }
+            else //param empty
+            {
+                if (writeParams != null && writeParams.Length > 0)
+                {
+                    throw new Exception("param must empty");
+                }
+            }
+
+            return command;
         }
 
         private async Task<byte[]> Read(int size, int timeout)
@@ -43,7 +85,7 @@ namespace Com.Common
         }
 
         /// <summary>
-        /// read all data
+        /// read bigger data then buffer size
         /// </summary>
         /// <returns>receive bytes</returns>
         public async Task<byte[]> ReadAsync()
@@ -79,12 +121,10 @@ namespace Com.Common
             return resultData.ToArray();
         }
 
-        /// <summary>
-        /// write
-        /// </summary>
-        /// <param name="data">send bytes</param>
-        /// <returns>task</returns>
-        public ValueTask WriteAsync(IEnumerable<byte> data) => _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
+        public ValueTask WriteAsync(byte[] data)
+        {
+            return _stream.WriteAsync(data).Timeout(_timeout);
+        }
 
         /// <summary>
         /// write and read
@@ -104,7 +144,7 @@ namespace Com.Common
                 await Task.Delay(readDelay);
                 receive = await ReadAsync();
             }
-            catch (Exception ex)
+            catch (Exception ex) //release slim lock and throw
             {
                 _slim.Release();
                 throw new Exception(string.Empty, ex);
