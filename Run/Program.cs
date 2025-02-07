@@ -13,7 +13,7 @@ internal class Program
     {
         Console.WriteLine("Hello");
 
-        BuilderTest.Run();
+        SampleTest.Run();
 
         Console.ReadLine();
     }

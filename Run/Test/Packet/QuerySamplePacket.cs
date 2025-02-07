@@ -8,16 +8,14 @@ using System.Threading.Tasks;
 
 namespace Run.Test.Packet
 {
-    internal class QuerySamplePacket : QueryPacket<double[]>
+    internal partial class QuerySamplePacket : QueryPacket<double[]>
     {
-        public override string GetCommand()
-        {
-            return "#0{0}\r";
-        }
+        [GeneratedRegex(@"\d*\.?\d+")]
+        private static partial Regex RealNumber();
 
-        protected override double[] Convert(string receiveData)
-        {
-            return new Regex(@"\d*\.?\d+").Matches(receiveData).Select(x => double.Parse(x.Value)).ToArray();
-        }
+        public override string GetCommand() => "#0{0}\r";
+
+        protected override double[] Convert(string receiveData) =>
+            RealNumber().Matches(receiveData).Select(x => double.Parse(x.Value)).ToArray();
     }
 }
