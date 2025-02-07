@@ -26,11 +26,9 @@ namespace Com.Interface
     {
         const int SLAVE_FIRST = 0x01;
 
-        #region one address : one bit
-
         /// <summary>
         /// func code: 0x01,
-        /// read setting bit
+        /// read set bit
         /// </summary>
         /// <param name="startAddress"></param>
         /// <param name="readNum"></param>
@@ -40,21 +38,21 @@ namespace Com.Interface
 
         /// <summary>
         /// func code: 0x05,
-        /// write setting bit
+        /// write set bit
         /// </summary>
         /// <param name="address"></param>
         /// <param name="value"></param>
         /// <param name="slave"></param>
-        void WriteSingleCoil(ushort address, bool value, byte slave = SLAVE_FIRST);
+        Task WriteSingleCoil(ushort address, bool value, byte slave = SLAVE_FIRST);
 
         /// <summary>
         /// func code: 0x15,
-        /// write setting multiple bits
+        /// write set multiple bits
         /// </summary>
         /// <param name="startAddress"></param>
         /// <param name="values"></param>
         /// <param name="slave"></param>
-        void WriteMultipleCoils(ushort startAddress, IEnumerable<bool> values, byte slave = SLAVE_FIRST);
+        Task WriteMultipleCoils(ushort startAddress, IEnumerable<bool> values, byte slave = SLAVE_FIRST);
 
         /// <summary>
         /// func code: 0x02,
@@ -66,14 +64,9 @@ namespace Com.Interface
         /// <returns>key: address, value: bool</returns>
         Task<IEnumerable<bool[]>> ReadDiscreteInputs(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
 
-        #endregion
-
-        #region one address : one word
-
-
         /// <summary>
         /// func code: 0x03,
-        /// read setting word
+        /// read set word
         /// </summary>
         /// <param name="startAddress"></param>
         /// <param name="readNum"></param>
@@ -83,21 +76,21 @@ namespace Com.Interface
 
         /// <summary>
         /// func code: 0x06,
-        /// write setting word
+        /// write set word
         /// </summary>
         /// <param name="address"></param>
         /// <param name="data"></param>
         /// <param name="slave"></param>
-        void WriteSingleRegister(ushort address, ushort data, byte slave = SLAVE_FIRST);
+        Task WriteSingleRegister(ushort address, ushort data, byte slave = SLAVE_FIRST);
 
         /// <summary>
         /// func code: 0x16,
-        /// write setting multiple words
+        /// write set multiple words
         /// </summary>
         /// <param name="address"></param>
         /// <param name="data"></param>
         /// <param name="slave"></param>
-        void WriteMultipleRegisters(ushort address, IEnumerable<ushort> data, byte slave = SLAVE_FIRST);
+        Task WriteMultipleRegisters(ushort address, IEnumerable<ushort> data, byte slave = SLAVE_FIRST);
 
         /// <summary>
         /// func code: 0x04,
@@ -108,7 +101,5 @@ namespace Com.Interface
         /// <param name="slave"></param>
         /// <returns>key: address, value: ushort</returns>
         Task<IEnumerable<ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = SLAVE_FIRST);
-
-        #endregion
     }
 }

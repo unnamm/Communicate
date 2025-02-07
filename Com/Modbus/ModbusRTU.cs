@@ -29,22 +29,22 @@ namespace Com.Modbus
         public Task<IEnumerable<ushort>> ReadInputRegisters(ushort startAddress, ushort readNum, byte slave = 1) =>
             ReadRegisters(0x04, startAddress, readNum, slave);
 
-        public void WriteMultipleCoils(ushort startAddress, IEnumerable<bool> values, byte slave = 1)
+        public Task WriteMultipleCoils(ushort startAddress, IEnumerable<bool> values, byte slave = 1)
         {
             throw new NotImplementedException();
         }
 
-        public void WriteMultipleRegisters(ushort address, IEnumerable<ushort> data, byte slave = 1)
+        public Task WriteMultipleRegisters(ushort address, IEnumerable<ushort> data, byte slave = 1)
         {
             throw new NotImplementedException();
         }
 
-        public void WriteSingleCoil(ushort address, bool value, byte slave = 1)
+        public Task WriteSingleCoil(ushort address, bool value, byte slave = 1)
         {
             throw new NotImplementedException();
         }
 
-        public async void WriteSingleRegister(ushort address, ushort data, byte slave = 1)
+        public async Task WriteSingleRegister(ushort address, ushort data, byte slave = 1)
         {
             var sendData = MakeSendData(0x06, address, data, slave);
 

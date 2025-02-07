@@ -1,4 +1,6 @@
 ﻿using Com;
+using Com.Common;
+using Com.Interface;
 using Com.Modbus;
 using Run.Test.Packet;
 using System;
@@ -29,21 +31,21 @@ namespace Run.Test
             public async Task Tcp()
             {
                 TcpCommunicate device = new("127.0.0.1", 6053);
-                await device.ConnectAsync();
-
-                await device.WriteAsync(new SetTargetVolt(), "15.5");
-                var idnData = await device.QueryAsync(new ReadIDN()); //return string
-                var sample = await device.QueryAsync(new QuerySamplePacket(), 1); //return double[]
-
-                device.Dispose();
+                await ComRun(device);
             }
 
             public async Task Serial() //same packet other protocol
             {
                 SerialCommunicate device = new("COM1", 9600, 8, System.IO.Ports.Parity.None);
+                await ComRun(device);
+            }
+
+            private async Task ComRun(Communicate device)
+            {
                 await device.ConnectAsync();
 
                 await device.WriteAsync(new SetTargetVolt(), "15");
+
                 var idnData = await device.QueryAsync(new ReadIDN());
                 var sample = await device.QueryAsync(new QuerySamplePacket(), 1);
 
@@ -52,18 +54,26 @@ namespace Run.Test
 
             public async Task ModbusTcp()
             {
-                TcpCommunicate tcp = new("localhost", 1234);
+                TcpCommunicate tcp = new("127.0.0.1", 502);
                 await tcp.ConnectAsync();
-                ModbusTCP modbus = new(tcp);
-                var result = await modbus.ReadHoldingRegisters(0x0000, 1, 1);
+                var modbus = new ModbusTCP(tcp);
+
+                await ModbusRun(modbus);
             }
 
             public async Task ModbusRTU()
             {
                 SerialCommunicate serial = new("COM2", 9600, 8, System.IO.Ports.Parity.None);
                 await serial.ConnectAsync();
-                ModbusRTU modbus = new(serial, false);
-                var result = await modbus.ReadHoldingRegisters(0x1000, 10, 1);
+                var modbus = new ModbusRTU(serial, false);
+
+                await ModbusRun(modbus);
+            }
+
+            private async Task ModbusRun(IModbus modbus)
+            {
+                await modbus.WriteSingleRegister(0x0001, 0x000F);
+                var result = await modbus.ReadHoldingRegisters(0x0000, 10, 1);
             }
         }
     }
