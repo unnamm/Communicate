@@ -5,6 +5,7 @@ using Com.Modbus;
 using Run.Test.Packet;
 using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Run.Test
 
             await t.Tcp();
             await t.Serial();
+            t.Serial2();
             await t.ModbusTcp();
             await t.ModbusRTU();
         }
@@ -36,11 +38,11 @@ namespace Run.Test
 
             public async Task Serial() //same packet other protocol
             {
-                SerialCommunicate device = new("COM1", 9600, 8, System.IO.Ports.Parity.None);
+                SerialCommunicate device = new("COM1", 9600, 8, Parity.None);
                 await ComRun(device);
             }
 
-            private async Task ComRun(Communicate device)
+            private async Task ComRun(Communicate device) //same packet other protocol
             {
                 await device.ConnectAsync();
 
@@ -50,6 +52,16 @@ namespace Run.Test
                 var sample = await device.QueryAsync(new QuerySamplePacket(), 1);
 
                 device.Dispose();
+            }
+
+            public void Serial2()
+            {
+                SerialCommunicate device = new("COM2", receiveHandler: receiveEvent);
+            }
+            private void receiveEvent(object o, SerialDataReceivedEventArgs e)
+            {
+                var serialPort = (SerialPort)o;
+                var data = serialPort.ReadExisting();
             }
 
             public async Task ModbusTcp()
@@ -63,7 +75,7 @@ namespace Run.Test
 
             public async Task ModbusRTU()
             {
-                SerialCommunicate serial = new("COM2", 9600, 8, System.IO.Ports.Parity.None);
+                SerialCommunicate serial = new("COM1");
                 await serial.ConnectAsync();
                 var modbus = new ModbusRTU(serial, false);
 

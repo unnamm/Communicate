@@ -18,6 +18,8 @@ namespace Com.Common
 
         protected readonly int _timeout;
 
+        protected bool _isUseReadEvent;
+
         private Stream _stream;
 
         public Communicate(int timeout = 1000)

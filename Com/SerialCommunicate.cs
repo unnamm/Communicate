@@ -7,10 +7,8 @@ namespace Com
     {
         private readonly SerialPort _serialPort;
 
-        //public override bool IsConnected => _serialPort.IsOpen;
-
-        public SerialCommunicate(string portName, int baudRate, int dataBits, Parity parity, int timeout = 1000) :
-            base(timeout)
+        public SerialCommunicate(string portName, int baudRate = 9600, int dataBits = 8, Parity parity = Parity.None,
+            SerialDataReceivedEventHandler? receiveHandler = null, int timeout = 1000) : base(timeout)
         {
             _serialPort = new()
             {
@@ -19,6 +17,12 @@ namespace Com
                 DataBits = dataBits,
                 Parity = parity
             };
+
+            if (receiveHandler != null)
+            {
+                _serialPort.DataReceived += receiveHandler;
+                _isUseReadEvent = true;
+            }
         }
 
         protected async override Task<Stream> ConnectAndStream()
@@ -29,8 +33,8 @@ namespace Com
 
         public override void Dispose()
         {
-            _serialPort.Dispose();
             base.Dispose();
+            _serialPort.Dispose();
             GC.SuppressFinalize(this);
         }
     }
