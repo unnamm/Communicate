@@ -12,7 +12,7 @@ namespace Com.Common
     /// <summary>
     /// communication parent
     /// </summary>
-    public abstract class Communicate : IDisposable, IQueryProtocol
+    public abstract class Communicate : IQueryProtocol, IPacketProtocol
     {
         private readonly SemaphoreSlim _slimQuery = new(1); //other thread lock
 

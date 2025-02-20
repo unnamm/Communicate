@@ -1,5 +1,4 @@
 ﻿using Com;
-using Com.Common;
 using Com.Interface;
 using Com.Modbus;
 using Run.Test.Packet;
@@ -42,7 +41,7 @@ namespace Run.Test
                 await ComRun(device);
             }
 
-            private async Task ComRun(Communicate device) //same packet other protocol
+            private async Task ComRun(IPacketProtocol device) //same packet other protocol
             {
                 await device.ConnectAsync();
 
