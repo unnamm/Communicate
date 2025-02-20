@@ -38,7 +38,7 @@ namespace Run.Test
 
             public async Task Serial() //same packet other protocol
             {
-                SerialCommunicate device = new("COM1", 9600, 8, Parity.None);
+                SerialCommunicate device = new("COM1");
                 await ComRun(device);
             }
 

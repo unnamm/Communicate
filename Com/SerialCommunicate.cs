@@ -21,7 +21,6 @@ namespace Com
             if (receiveHandler != null)
             {
                 _serialPort.DataReceived += receiveHandler;
-                _isUseReadEvent = true;
             }
         }
 

@@ -18,8 +18,6 @@ namespace Com.Common
 
         protected readonly int _timeout;
 
-        protected bool _isUseReadEvent;
-
         private Stream _stream;
 
         public Communicate(int timeout = 1000)
@@ -123,10 +121,7 @@ namespace Com.Common
             return resultData.ToArray();
         }
 
-        public ValueTask WriteAsync(byte[] data)
-        {
-            return _stream.WriteAsync(data).Timeout(_timeout);
-        }
+        public ValueTask WriteAsync(byte[] data) => _stream.WriteAsync(data).Timeout(_timeout);
 
         /// <summary>
         /// write and read

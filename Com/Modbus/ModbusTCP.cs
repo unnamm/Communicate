@@ -87,22 +87,21 @@ namespace Com.Modbus
             return dic;
         }
 
-        private static List<byte> MakeSendData(byte code, ushort address, ushort data, byte slave)
+        private static byte[] MakeSendData(byte code, ushort address, ushort data, byte slave)
         {
             var addresses = BitConverter.GetBytes(address);
             var datas = BitConverter.GetBytes(data);
 
-            List<byte> sendData =
-            [
-                0x00, 0x01, //Transaction Identifier, send == receive
-                0x00, 0x00, //Protocol Identifier, fix 0000
-                0x00, 0x06, //byte count after this
-                slave,      //Unit Identifier, slave
-                code,       //Function Code
-                addresses[1], addresses[0], //Starting Address
-                datas[1], datas[0]    //read num or data
-            ];
-            return sendData;
+            return
+                [
+                    0x00, 0x01, //Transaction Identifier, send == receive
+                    0x00, 0x00, //Protocol Identifier, fix 0000
+                    0x00, 0x06, //byte count after this
+                    slave,      //Unit Identifier, slave
+                    code,       //Function Code
+                    addresses[1], addresses[0], //Starting Address
+                    datas[1], datas[0]    //read num or data
+                ];
         }
 
     }

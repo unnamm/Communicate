@@ -68,7 +68,7 @@ namespace Com.Modbus
             return dic;
         }
 
-        private List<byte> MakeSendData(byte code, ushort address, ushort data, byte slave)
+        private byte[] MakeSendData(byte code, ushort address, ushort data, byte slave)
         {
             var addresses = BitConverter.GetBytes(address);
             var datas = BitConverter.GetBytes(data);
@@ -83,13 +83,13 @@ namespace Com.Modbus
 
             if (_isUseCRC)
             {
-                var crc = BitConverter.GetBytes(getCRC(sendData));
+                var crc = BitConverter.GetBytes(GetCRC(sendData));
                 sendData.AddRange([crc[1], crc[0]]);
             }
-            return sendData;
+            return [.. sendData];
         }
 
-        private static ushort getCRC(IEnumerable<byte> data)
+        private static ushort GetCRC(IEnumerable<byte> data)
         {
             ushort[] crcTable = [
             0X0000, 0XC0C1, 0XC181, 0X0140, 0XC301, 0X03C0, 0X0280, 0XC241,
