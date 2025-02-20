@@ -11,9 +11,8 @@ namespace Com.Packet
     /// write and recieve packet
     /// </summary>
     /// <typeparam name="T">receive data type</typeparam>
-    public abstract class QueryPacket<T> : IPacket
+    public abstract class QueryPacket<T>
     {
-        public object[]? Params { get; set; }
         public abstract string GetCommand();
 
         /// <summary>

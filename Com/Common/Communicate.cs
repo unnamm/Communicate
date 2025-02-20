@@ -14,7 +14,7 @@ namespace Com.Common
     /// </summary>
     public abstract class Communicate : IDisposable, IQueryProtocol
     {
-        private readonly SemaphoreSlim _slim = new(1); //other thread lock
+        private readonly SemaphoreSlim _slimQuery = new(1); //other thread lock
 
         protected readonly int _timeout;
 
@@ -35,19 +35,14 @@ namespace Com.Common
 
         public async Task<T> QueryAsync<T>(QueryPacket<T> packet, params object[] @params)
         {
-            packet.Params = @params;
             var sendData = MakeParamsCommand(packet.GetCommand(), @params);
-
             var receiveData = await QueryAsync(Encoding.UTF8.GetBytes(sendData));
-
             return packet.GetData(Encoding.UTF8.GetString(receiveData));
         }
 
         public ValueTask WriteAsync(WritePacket packet, params object[] @params)
         {
-            packet.Params = @params;
             var sendData = MakeParamsCommand(packet.GetCommand(), @params);
-
             return WriteAsync(Encoding.UTF8.GetBytes(sendData));
         }
 
@@ -121,7 +116,10 @@ namespace Com.Common
             return resultData.ToArray();
         }
 
-        public ValueTask WriteAsync(byte[] data) => _stream.WriteAsync(data).Timeout(_timeout);
+        public ValueTask WriteAsync(byte[] data)
+        {
+            return _stream.WriteAsync(data).Timeout(_timeout);
+        }
 
         /// <summary>
         /// write and read
@@ -134,7 +132,7 @@ namespace Com.Common
         {
             byte[] receive;
 
-            await _slim.WaitAsync();
+            await _slimQuery.WaitAsync();
             try
             {
                 await _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
@@ -143,10 +141,10 @@ namespace Com.Common
             }
             catch (Exception ex) //release slim lock and throw
             {
-                _slim.Release();
+                _slimQuery.Release();
                 throw new Exception(string.Empty, ex);
             }
-            _slim.Release();
+            _slimQuery.Release();
 
             return receive;
         }

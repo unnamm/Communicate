@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 
 namespace Com.Packet
 {
-    public abstract class WritePacket : IPacket
+    public abstract class WritePacket
     {
-        public object[]? Params { get; set; }
-
         public abstract string GetCommand();
     }
 }

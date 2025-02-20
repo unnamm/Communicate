@@ -31,13 +31,5 @@ namespace Com
             base.Dispose();
             GC.SuppressFinalize(this);
         }
-
-        public static async void TestPlay()
-        {
-            TcpCommunicate tcp = new("127.0.0.1", 6053);
-            await tcp.ConnectAsync();
-            var v = await tcp.ReadAsync();
-            Console.WriteLine(Encoding.UTF8.GetString(v));
-        }
     }
 }
