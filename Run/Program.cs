@@ -13,8 +13,21 @@ internal class Program
     {
         Console.WriteLine("Hello");
 
-        SampleTest.Run();
+        //SampleTest.Run();
+
+        HttpTest();
 
         Console.ReadLine();
+    }
+
+    private static void HttpTest()
+    {
+        Http.Server server = new();
+        server.RunListen();
+
+        Http.Client client = new();
+        //client.Get("get");
+        //client.Get("get2");
+        client.Post();
     }
 }

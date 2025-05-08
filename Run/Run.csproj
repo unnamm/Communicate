@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Com\Com.csproj" />
+    <ProjectReference Include="..\Http\Http.csproj" />
   </ItemGroup>
 
 	<!--<Target Name="PostBuild" AfterTargets="PostBuildEvent">
