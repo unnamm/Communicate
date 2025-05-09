@@ -44,30 +44,38 @@ namespace Http
             var context = await listener.GetContextAsync(); //when until message is received from client
 
             var request = context.Request;
-            using var response = context.Response;
+            byte[]? respByte = null; //send data
 
-            byte[] respByte; //send data
+            if (request.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase)) //get
+            {
+                var rawUrl = request.RawUrl!.Replace("/", string.Empty);
 
-            var rawUrl = request.RawUrl!.Replace("/", string.Empty);
-
-            if (string.IsNullOrEmpty(rawUrl)) //post
+                if (rawUrl.Equals("get", StringComparison.OrdinalIgnoreCase))
+                {
+                    respByte = Encoding.UTF8.GetBytes(RESPONSE);
+                }
+                else if (rawUrl.Equals("get2", StringComparison.OrdinalIgnoreCase))
+                {
+                    respByte = Encoding.UTF8.GetBytes("response get2");
+                }
+            }
+            else if (request.HttpMethod.Equals("POST", StringComparison.OrdinalIgnoreCase)) //post
             {
                 using var body = request.InputStream;
                 using var reader = new StreamReader(body, Encoding.UTF8);
-                var data = await reader.ReadToEndAsync(); //body data
+                var data = reader.ReadToEnd(); //body data
 
-                respByte = Encoding.UTF8.GetBytes("post");
+                Console.WriteLine($"message received by server is= {data}");
+
+                respByte = Encoding.UTF8.GetBytes("response post");
             }
-            else //get
+
+            if (respByte == null)
             {
-                respByte = rawUrl switch  //send message
-                {
-                    "get" => Encoding.UTF8.GetBytes(RESPONSE),
-                    "get2" => Encoding.UTF8.GetBytes("response get2"),
-                    _ => throw new NotImplementedException()
-                };
+                throw new NotImplementedException();
             }
 
+            using var response = context.Response;
             //response.ContentType = "text/html";
             //response.Headers.Add("Access-Control-Allow-Origin", "*");
             response.ContentEncoding = Encoding.UTF8;
