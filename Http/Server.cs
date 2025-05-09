@@ -73,7 +73,7 @@ namespace Http
             response.ContentEncoding = Encoding.UTF8;
             response.ContentLength64 = respByte.LongLength;
 
-            await response.OutputStream.WriteAsync(respByte);
+            await response.OutputStream.WriteAsync(respByte); //send client
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Http
         public async void Get(string rawUrl)
         {
             using var response = await _client.GetAsync($"http://localhost/{rawUrl}/"); //address/rawurl/
-            var message = GetMessage(response);
+            var message = await GetMessage(response);
         }
 
         public async void Post()
@@ -32,15 +32,14 @@ namespace Http
             using StringContent jsonContent = new(content, Encoding.UTF8);
 
             using var response = await _client.PostAsync("http://localhost", jsonContent);
-            //using var response = await _client.PostAsJsonAsync("http://localhost", new Point() { X = 1, Y = 2 });
-            var message = GetMessage(response);
-
+            //using var response = await _client.PostAsJsonAsync("http://localhost", new Point() { X = 1, Y = 2 }); //auto make json
+            var message = await GetMessage(response);
         }
 
-        private async Task<string> GetMessage(HttpResponseMessage message)
+        private static Task<string> GetMessage(HttpResponseMessage message)
         {
             using var response = message.EnsureSuccessStatusCode(); //if not successful, error occurs
-            return await response.Content.ReadAsStringAsync(); //get message
+            return response.Content.ReadAsStringAsync(); //get message
         }
     }
 }
