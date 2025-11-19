@@ -27,11 +27,16 @@ internal class Program
     {
         public async Task Func()
         {
-            SerialCommunicate sc = new("COM3");
-
-            byte[] send = [];
-
-            var receive = await sc.QueryAsync(send);
+            try
+            {
+                SerialCommunicate sc = new("COM3");
+                await sc.ConnectAsync();
+                var receive = await sc.QueryAsync([]);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }
