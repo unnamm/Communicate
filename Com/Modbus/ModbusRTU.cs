@@ -89,7 +89,7 @@ namespace Com.Modbus
             return [.. sendData];
         }
 
-        private static ushort GetCRC(IEnumerable<byte> data)
+        public static ushort GetCRC(IEnumerable<byte> data)
         {
             ushort[] crcTable = [
             0X0000, 0XC0C1, 0XC181, 0X0140, 0XC301, 0X03C0, 0X0280, 0XC241,

@@ -1,8 +1,13 @@
-﻿using Run.Test;
+﻿using Com;
+using Com.Modbus;
+using Com.Packet;
+using Run.Test;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Ports;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -13,21 +18,20 @@ internal class Program
     {
         Console.WriteLine("Hello");
 
-        //SampleTest.Run();
-
-        HttpTest();
+        _ = new Run().Func();
 
         Console.ReadLine();
     }
 
-    private static void HttpTest()
+    class Run
     {
-        Http.Server server = new();
-        server.RunListen();
+        public async Task Func()
+        {
+            SerialCommunicate sc = new("COM3");
 
-        Http.Client client = new();
-        //client.Get("get");
-        //client.Get("get2");
-        client.Post();
+            byte[] send = [];
+
+            var receive = await sc.QueryAsync(send);
+        }
     }
 }
