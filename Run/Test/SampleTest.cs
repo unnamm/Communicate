@@ -1,4 +1,5 @@
 ﻿using Com;
+using Com.Common;
 using Com.Interface;
 using Com.Modbus;
 using Run.Test.Packet;
@@ -32,13 +33,15 @@ namespace Run.Test
             public async Task Tcp()
             {
                 TcpCommunicate device = new("127.0.0.1", 6053);
-                await ComRun(device);
+                PacketCommunicate packetCom = new(device);
+                await ComRun(packetCom);
             }
 
             public async Task Serial() //same packet other protocol
             {
                 SerialCommunicate device = new("COM1");
-                await ComRun(device);
+                PacketCommunicate packetCom = new(device);
+                await ComRun(packetCom);
             }
 
             private async Task ComRun(IPacketProtocol device) //same packet other protocol

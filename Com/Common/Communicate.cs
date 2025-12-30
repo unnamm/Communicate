@@ -12,10 +12,10 @@ namespace Com.Common
     /// <summary>
     /// communication parent
     /// </summary>
-    public abstract class Communicate : IQueryProtocol, IPacketProtocol
+    public abstract class Communicate : IQueryProtocol
     {
-        private readonly SemaphoreSlim _slimQuery = new(1); //other thread lock
         private readonly int _timeoutMilli;
+        private readonly SemaphoreSlim _slimQuery = new(1); //other thread lock
 
         private Stream _stream;
 
@@ -32,13 +32,6 @@ namespace Com.Common
                 throw new NullReferenceException("stream is null");
         }
 
-        public async Task<T> QueryAsync<T>(QueryPacket<T> packet, params object[] @params)
-        {
-            var sendData = MakeParamsCommand(packet.GetCommand(), @params);
-            var receiveData = await QueryAsync(Encoding.UTF8.GetBytes(sendData));
-            return packet.GetData(Encoding.UTF8.GetString(receiveData));
-        }
-
         public async Task<byte[]> QueryAsync(IEnumerable<byte> data, int readDelay = 0)
         {
             byte[] receive;
@@ -46,7 +39,7 @@ namespace Com.Common
             await _slimQuery.WaitAsync();
             try
             {
-                CancellationTokenSource cts = new(_timeoutMilli);
+                using CancellationTokenSource cts = new(_timeoutMilli);
                 await _stream.WriteAsync(data.ToArray(), cts.Token);
                 await Task.Delay(readDelay);
                 receive = await ReadAsync();
@@ -61,38 +54,18 @@ namespace Com.Common
             return receive;
         }
 
-        public ValueTask WriteAsync(WritePacket packet, params object[] @params)
+        public ValueTask WriteAsync(byte[] data, int timeoutMilli)
         {
-            var sendData = MakeParamsCommand(packet.GetCommand(), @params);
-            return WriteAsync(Encoding.UTF8.GetBytes(sendData), _timeoutMilli);
+            using CancellationTokenSource cts = new(timeoutMilli);
+            return _stream.WriteAsync(data, cts.Token);
         }
 
-        private static string MakeParamsCommand(string command, object[]? writeParams)
-        {
-            if (command.Contains("{0}")) //use param
-            {
-                if (writeParams == null || writeParams.Length == 0)
-                {
-                    throw new Exception("param need");
-                }
-
-                return string.Format(command, writeParams);
-            }
-            else //param empty
-            {
-                if (writeParams != null && writeParams.Length > 0)
-                {
-                    throw new Exception("param must empty");
-                }
-            }
-
-            return command;
-        }
+        public ValueTask WriteAsync(byte[] data) => WriteAsync(data, _timeoutMilli);
 
         private async Task<byte[]> Read(int size, int timeoutMilli)
         {
             var buffer = new byte[size];
-            CancellationTokenSource cts = new(timeoutMilli);
+            using CancellationTokenSource cts = new(timeoutMilli);
 
             var len = await _stream.ReadAsync(buffer, cts.Token);
 
@@ -133,13 +106,6 @@ namespace Com.Common
 
             return resultData.ToArray();
         }
-
-        public ValueTask WriteAsync(byte[] data, int timeoutMilli)
-        {
-            CancellationTokenSource cts = new(timeoutMilli);
-            return _stream.WriteAsync(data, cts.Token);
-        }
-
 
         public virtual void Dispose()
         {

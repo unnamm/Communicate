@@ -17,15 +17,15 @@ namespace Com
 
         protected override async Task<Stream> ConnectAndStream(int timeoutMilli)
         {
-            CancellationTokenSource cts = new(timeoutMilli);
+            using CancellationTokenSource cts = new(timeoutMilli);
             await _client.ConnectAsync(_ip, _port, cts.Token);
             return _client.GetStream();
         }
 
         public override void Dispose()
         {
-            _client.Dispose();
             base.Dispose();
+            _client.Dispose();
             GC.SuppressFinalize(this);
         }
     }
