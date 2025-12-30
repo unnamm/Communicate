@@ -15,22 +15,21 @@ namespace Com.Common
     public abstract class Communicate : IQueryProtocol, IPacketProtocol
     {
         private readonly SemaphoreSlim _slimQuery = new(1); //other thread lock
-
-        protected readonly int _timeout;
+        private readonly int _timeoutMilli;
 
         private Stream _stream;
 
-        public Communicate(int timeout = 1000)
+        public Communicate(int timeout)
         {
-            _timeout = timeout;
+            _timeoutMilli = timeout;
         }
 
         public async Task ConnectAsync()
         {
-            _stream = await ConnectAndStream().Timeout(_timeout);
+            _stream = await ConnectAndStream(_timeoutMilli);
 
             if (_stream is null)
-                throw new Exception("stream is null");
+                throw new NullReferenceException("stream is null");
         }
 
         public async Task<T> QueryAsync<T>(QueryPacket<T> packet, params object[] @params)
@@ -40,10 +39,32 @@ namespace Com.Common
             return packet.GetData(Encoding.UTF8.GetString(receiveData));
         }
 
+        public async Task<byte[]> QueryAsync(IEnumerable<byte> data, int readDelay = 0)
+        {
+            byte[] receive;
+
+            await _slimQuery.WaitAsync();
+            try
+            {
+                CancellationTokenSource cts = new(_timeoutMilli);
+                await _stream.WriteAsync(data.ToArray(), cts.Token);
+                await Task.Delay(readDelay);
+                receive = await ReadAsync();
+            }
+            catch (Exception ex) //release slim lock and throw
+            {
+                _slimQuery.Release();
+                throw new Exception(string.Empty, ex);
+            }
+            _slimQuery.Release();
+
+            return receive;
+        }
+
         public ValueTask WriteAsync(WritePacket packet, params object[] @params)
         {
             var sendData = MakeParamsCommand(packet.GetCommand(), @params);
-            return WriteAsync(Encoding.UTF8.GetBytes(sendData));
+            return WriteAsync(Encoding.UTF8.GetBytes(sendData), _timeoutMilli);
         }
 
         private static string MakeParamsCommand(string command, object[]? writeParams)
@@ -68,28 +89,25 @@ namespace Com.Common
             return command;
         }
 
-        private async Task<byte[]> Read(int size, int timeout)
+        private async Task<byte[]> Read(int size, int timeoutMilli)
         {
             var buffer = new byte[size];
+            CancellationTokenSource cts = new(timeoutMilli);
 
-            var len = await _stream.ReadAsync(buffer).Timeout(timeout);
+            var len = await _stream.ReadAsync(buffer, cts.Token);
 
             var bufferData = new byte[len];
             Array.Copy(buffer, bufferData, len);
             return bufferData;
         }
 
-        /// <summary>
-        /// read bigger data then buffer size
-        /// </summary>
-        /// <returns>receive bytes</returns>
         public async Task<byte[]> ReadAsync()
         {
             IEnumerable<byte> resultData = []; //return data
 
             const int BUFFER_SIZE = 1024;
 
-            var data = await Read(BUFFER_SIZE, _timeout);
+            var data = await Read(BUFFER_SIZE, _timeoutMilli);
 
             if (data.Length < BUFFER_SIZE)
                 return data;
@@ -100,7 +118,7 @@ namespace Com.Common
             {
                 try
                 {
-                    data = await Read(BUFFER_SIZE, _timeout / 10); //read next data
+                    data = await Read(BUFFER_SIZE, _timeoutMilli / 10); //read next data
                 }
                 catch (TimeoutException) //read data empty
                 {
@@ -116,49 +134,19 @@ namespace Com.Common
             return resultData.ToArray();
         }
 
-        public ValueTask WriteAsync(byte[] data)
+        public ValueTask WriteAsync(byte[] data, int timeoutMilli)
         {
-            return _stream.WriteAsync(data).Timeout(_timeout);
+            CancellationTokenSource cts = new(timeoutMilli);
+            return _stream.WriteAsync(data, cts.Token);
         }
 
-        /// <summary>
-        /// write and read
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="readDelay">write and delay and read</param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public async Task<byte[]> QueryAsync(IEnumerable<byte> data, int readDelay = 0)
-        {
-            byte[] receive;
-
-            await _slimQuery.WaitAsync();
-            try
-            {
-                await _stream.WriteAsync(data.ToArray()).Timeout(_timeout);
-                await Task.Delay(readDelay);
-                receive = await ReadAsync();
-            }
-            catch (Exception ex) //release slim lock and throw
-            {
-                _slimQuery.Release();
-                throw new Exception(string.Empty, ex);
-            }
-            _slimQuery.Release();
-
-            return receive;
-        }
-
-        /// <summary>
-        /// module init and set stream
-        /// </summary>
-        /// <returns></returns>
-        protected abstract Task<Stream> ConnectAndStream();
 
         public virtual void Dispose()
         {
             _stream.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        protected abstract Task<Stream> ConnectAndStream(int timeoutMilli);
     }
 }

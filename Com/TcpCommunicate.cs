@@ -1,6 +1,5 @@
 ﻿using Com.Common;
 using System.Net.Sockets;
-using System.Text;
 
 namespace Com
 {
@@ -10,18 +9,16 @@ namespace Com
         private readonly string _ip;
         private readonly TcpClient _client = new();
 
-        //public override bool IsConnected => _client.Connected;
-
-        public TcpCommunicate(string ip, int port, int timeout = 1000) :
-            base(timeout)
+        public TcpCommunicate(string ip, int port, int timeout = 1000) : base(timeout)
         {
             _ip = ip;
             _port = port;
         }
 
-        protected override async Task<Stream> ConnectAndStream()
+        protected override async Task<Stream> ConnectAndStream(int timeoutMilli)
         {
-            await _client.ConnectAsync(_ip, _port).Timeout(_timeout);
+            CancellationTokenSource cts = new(timeoutMilli);
+            await _client.ConnectAsync(_ip, _port, cts.Token);
             return _client.GetStream();
         }
 

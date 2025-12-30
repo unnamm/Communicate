@@ -16,8 +16,4 @@
     <ProjectReference Include="..\Http\Http.csproj" />
   </ItemGroup>
 
-	<!--<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="xcopy /s /e /d /y $(OutDir) \\192.168.0.100\Hanmac\Test\" />
-	</Target>-->
-
 </Project>

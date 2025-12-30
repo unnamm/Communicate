@@ -32,10 +32,10 @@ namespace Com
             }
         }
 
-        protected async override Task<Stream> ConnectAndStream()
+        protected override Task<Stream> ConnectAndStream(int timeoutMilli)
         {
-            await Task.Run(_serialPort.Open).Timeout(_timeout);
-            return _serialPort.BaseStream;
+            _serialPort.Open();
+            return Task.FromResult(_serialPort.BaseStream);
         }
 
         public override void Dispose()
